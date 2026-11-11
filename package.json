@@ -1,8 +1,8 @@
 {
   "name": "sakura-gothic-theme",
   "displayName": "Sakura Gothic",
-  "description": "Plum, lilac and cherry-blossom pink. A gothic pastel color theme in dark and light.",
-  "version": "1.0.0",
+  "description": "Plum, lilac and cherry-blossom pink. A gothic pastel color theme in dark and light, plus a wintry Snow edition.",
+  "version": "1.1.0",
   "publisher": "ftvot-studio",
   "license": "MIT",
   "repository": {
@@ -22,7 +22,9 @@
     "pink",
     "purple",
     "pastel",
-    "gothic"
+    "gothic",
+    "winter",
+    "snow"
   ],
   "galleryBanner": {
     "color": "#1C1222",
@@ -39,6 +41,16 @@
         "label": "Sakura Gothic Light",
         "uiTheme": "vs",
         "path": "./themes/sakura-gothic-light-color-theme.json"
+      },
+      {
+        "label": "Sakura Gothic Snow Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/sakura-gothic-snow-dark-color-theme.json"
+      },
+      {
+        "label": "Sakura Gothic Snow Light",
+        "uiTheme": "vs",
+        "path": "./themes/sakura-gothic-snow-light-color-theme.json"
       }
     ]
   }

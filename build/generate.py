@@ -106,6 +106,57 @@ LIGHT = {
     "deleted": "#B81D42",
 }
 
+# ---------------------------------------------------------------
+# Snow 변형: 겨울 일러스트 (핑크 설경, 마룬 외곽선, 라벤더 눈동자, 가로등 앰버)
+# ---------------------------------------------------------------
+SNOW_DARK = {
+    "name": "Sakura Gothic Snow Dark",
+    "type": "dark",
+    "bg0": "#160A12", "bg1": "#1A0D15", "bg2": "#1F1019", "bg3": "#2B1723", "bg4": "#3B1F2F",
+    "line": "#34192A",
+    "fg": "#F8E1EE", "fg2": "#CFA5BD", "fg3": "#A6829A",
+    "accent": "#FF8AC8", "accent_fg": "#1F1019",
+    "selection": "#6A2F52", "find": "#FF8AC8",
+    "comment": "#A6829A",
+    "keyword": "#FF8AC8", "storage": "#F7A6D2", "string": "#FFD0E6", "escape": "#FFB3D9",
+    "number": "#FFB4A8", "constant": "#F5D49A",   # 가로등 앰버
+    "function": "#C9B8F5",                        # 눈동자 라벤더
+    "type": "#AEABF2", "class": "#DCCBFA",
+    "variable": "#F8E1EE", "param": "#EBC4DB", "property": "#E4B8D1",
+    "tag": "#FF8AC8", "attr": "#DDA8D3", "operator": "#D99EC4", "punct": "#B28EA4",
+    "namespace": "#DDBFD0", "decorator": "#F7A6D2",
+    "error": "#FF6B82", "warning": "#F5D49A", "info": "#AEABF2",
+    "added": "#9AD6BC", "modified": "#C9B8F5", "deleted": "#FF6B82",
+}
+
+SNOW_LIGHT = {
+    "name": "Sakura Gothic Snow Light",
+    "type": "light",
+    # 일러스트 자체가 핑크 설경이라 라이트는 배경에 핑크 톤을 더 싣는다
+    "bg0": "#F5D8E8", "bg1": "#FAE5F0", "bg2": "#FFF4F9", "bg3": "#F7DCEB", "bg4": "#F0C6DD",
+    "line": "#EBCADC",
+    "fg": "#4A0F2A", "fg2": "#74365A", "fg3": "#7E4466",
+    "accent": "#B3125A", "accent_fg": "#FFFFFF",
+    "selection": "#F5BBD8", "find": "#B3125A",
+    "comment": "#7E4466",
+    "keyword": "#B3125A", "storage": "#9E2C66", "string": "#9A3D67", "escape": "#B3125A",
+    "number": "#B0263F", "constant": "#7E5000",
+    "function": "#5A44B8", "type": "#3F48A8", "class": "#6A3CA6",
+    "variable": "#4A0F2A", "param": "#6A2C55", "property": "#7A3466",
+    "tag": "#B3125A", "attr": "#80338A", "operator": "#8E3570", "punct": "#734A62",
+    "namespace": "#6A3A58", "decorator": "#A0306A",
+    "error": "#B81D42", "warning": "#7E5000", "info": "#3F48A8",
+    "added": "#236446", "modified": "#5A44B8", "deleted": "#B81D42",
+}
+
+# (팔레트, 출력 파일명). 새 변형은 여기에 한 줄 추가하면 끝
+PALETTES = [
+    (DARK, "sakura-gothic-dark-color-theme.json"),
+    (LIGHT, "sakura-gothic-light-color-theme.json"),
+    (SNOW_DARK, "sakura-gothic-snow-dark-color-theme.json"),
+    (SNOW_LIGHT, "sakura-gothic-snow-light-color-theme.json"),
+]
+
 
 def a(hex_color: str, alpha: str) -> str:
     """#RRGGBB + 알파(hex 2자리). VS Code는 #RRGGBBAA를 지원한다."""
@@ -538,7 +589,7 @@ def build(p: dict) -> dict:
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    for p, fname in ((DARK, "sakura-gothic-dark-color-theme.json"), (LIGHT, "sakura-gothic-light-color-theme.json")):
+    for p, fname in PALETTES:
         (OUT / fname).write_text(json.dumps(build(p), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print(f"wrote themes/{fname}")
 

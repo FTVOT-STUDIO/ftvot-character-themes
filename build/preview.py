@@ -5,7 +5,7 @@
 """
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
-from generate import DARK, LIGHT
+from generate import PALETTES
 
 ROOT = Path(__file__).resolve().parent.parent
 FONT = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 15)
@@ -73,6 +73,8 @@ def render(p: dict, path: Path) -> None:
 if __name__ == "__main__":
     out = ROOT / "preview"
     out.mkdir(exist_ok=True)
-    render(DARK, out / "dark.png")
-    render(LIGHT, out / "light.png")
-    print("wrote preview/dark.png, preview/light.png")
+    for pal, fname in PALETTES:
+        # sakura-gothic-snow-dark-color-theme.json -> snow-dark.png
+        name = fname.replace("sakura-gothic-", "").replace("-color-theme.json", "") + ".png"
+        render(pal, out / name)
+        print(f"wrote preview/{name}")
