@@ -1,4 +1,4 @@
-// Pore Theme 런타임: 테마별 배경 이미지 (리로드 없이 즉시 전환)
+// FTVOT Character Themes 런타임: 테마별 배경 이미지 (리로드 없이 즉시 전환)
 //
 // 컬러 테마 JSON은 이미지를 못 넣는다. 그래서 VS Code 워크벤치 HTML에 <style> 하나를 한 번만 주입하고,
 // "현재 테마 클래스 → 배경 이미지" 규칙을 CSS로 전부 넣어 둔다.
@@ -187,20 +187,20 @@ function applyBackgrounds(opts) {
 async function applyBackgroundsNow({ quiet = false } = {}) {
 	const { css, missing, unknown } = buildPatch();
 	if (missing.length && !quiet) {
-		vscode.window.showWarningMessage(`Pore Theme: 배경 이미지를 찾을 수 없습니다 (${missing.join(', ')})`);
+		vscode.window.showWarningMessage(`FTVOT Character Themes: 배경 이미지를 찾을 수 없습니다 (${missing.join(', ')})`);
 	}
 	if (unknown.length && !quiet) {
-		vscode.window.showWarningMessage(`Pore Theme: 설치되지 않은 테마입니다 (${unknown.join(', ')})`);
+		vscode.window.showWarningMessage(`FTVOT Character Themes: 설치되지 않은 테마입니다 (${unknown.join(', ')})`);
 	}
 	let changed;
 	try {
 		changed = writePatch(css);
 	} catch (err) {
-		vscode.window.showErrorMessage(`Pore Theme: VS Code 파일을 수정하지 못했습니다. 관리자 권한이 필요한 위치에 설치된 경우 사용자용 VS Code를 쓰거나 관리자 권한으로 한 번 실행해 주세요. (${err.message})`);
+		vscode.window.showErrorMessage(`FTVOT Character Themes: VS Code 파일을 수정하지 못했습니다. 관리자 권한이 필요한 위치에 설치된 경우 사용자용 VS Code를 쓰거나 관리자 권한으로 한 번 실행해 주세요. (${err.message})`);
 		return 'error';
 	}
 	if (changed) {
-		await promptReload(css ? 'Pore Theme: 배경 이미지 목록이 바뀌었습니다. 한 번만 다시 로드하면 이후 테마 전환은 즉시 반영됩니다.' : 'Pore Theme: 배경을 제거했습니다. 다시 로드하면 적용됩니다.');
+		await promptReload(css ? 'FTVOT Character Themes: 배경 이미지 목록이 바뀌었습니다. 한 번만 다시 로드하면 이후 테마 전환은 즉시 반영됩니다.' : 'FTVOT Character Themes: 배경을 제거했습니다. 다시 로드하면 적용됩니다.');
 		return 'reload';
 	}
 	return 'unchanged';
@@ -229,14 +229,14 @@ async function applySetupFile() {
 	if (!fs.existsSync(SETUP_FILE)) return false;
 	if (userSettingsDirty()) {
 		pendingSetup = true;
-		vscode.window.setStatusBarMessage('Pore Theme: settings.json을 저장하면 설정이 적용됩니다', 8000);
+		vscode.window.setStatusBarMessage('FTVOT Character Themes: settings.json을 저장하면 설정이 적용됩니다', 8000);
 		return false;
 	}
 	let setup;
 	try {
 		setup = JSON.parse(fs.readFileSync(SETUP_FILE, 'utf8').replace(/^\uFEFF/, ''));
 	} catch (e) {
-		vscode.window.showErrorMessage(`Pore Theme: 설치 설정 파일을 읽지 못했습니다. ${e.message}`);
+		vscode.window.showErrorMessage(`FTVOT Character Themes: 설치 설정 파일을 읽지 못했습니다. ${e.message}`);
 		return false;
 	}
 	const cfg = vscode.workspace.getConfiguration(SECTION);
@@ -290,7 +290,7 @@ async function applyBundledDefaults(context) {
 	if (!Object.keys(additions).length) return false;
 	if (userSettingsDirty()) {
 		pendingBundled = true;
-		vscode.window.setStatusBarMessage('Pore Theme: settings.json을 저장하면 새 배경이 추가됩니다', 8000);
+		vscode.window.setStatusBarMessage('FTVOT Character Themes: settings.json을 저장하면 새 배경이 추가됩니다', 8000);
 		return false;
 	}
 
@@ -395,7 +395,7 @@ async function clearBackgroundForCurrentTheme() {
 	const theme = currentThemeLabel();
 	const map = { ...backgroundsMap() };
 	if (!(theme in map)) {
-		vscode.window.showInformationMessage(`Pore Theme: ${theme}에는 지정된 배경이 없습니다.`);
+		vscode.window.showInformationMessage(`FTVOT Character Themes: ${theme}에는 지정된 배경이 없습니다.`);
 		return;
 	}
 	delete map[theme];
@@ -404,10 +404,10 @@ async function clearBackgroundForCurrentTheme() {
 
 async function removePatch() {
 	try {
-		if (writePatch('')) await promptReload('Pore Theme: 배경 패치를 제거했습니다. 다시 로드하면 적용됩니다.');
-		else vscode.window.showInformationMessage('Pore Theme: 제거할 배경 패치가 없습니다.');
+		if (writePatch('')) await promptReload('FTVOT Character Themes: 배경 패치를 제거했습니다. 다시 로드하면 적용됩니다.');
+		else vscode.window.showInformationMessage('FTVOT Character Themes: 제거할 배경 패치가 없습니다.');
 	} catch (err) {
-		vscode.window.showErrorMessage(`Pore Theme: ${err.message}`);
+		vscode.window.showErrorMessage(`FTVOT Character Themes: ${err.message}`);
 	}
 }
 
@@ -427,7 +427,7 @@ async function startup(context) {
 	const result = await applyBackgrounds();
 	// 우리 패치는 그대로인데 예전 Background 확장 블록만 지운 경우에도, 화면에 남은 옛 배경을 없애려면 리로드가 필요하다
 	if (migrated && result === 'unchanged') {
-		await promptReload('Pore Theme: 예전 Background 확장의 배경을 정리했습니다. 다시 로드하면 배경 겹침이 사라집니다.');
+		await promptReload('FTVOT Character Themes: 예전 Background 확장의 배경을 정리했습니다. 다시 로드하면 배경 겹침이 사라집니다.');
 	}
 }
 

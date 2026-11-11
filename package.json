@@ -1,13 +1,13 @@
 {
   "name": "pore-theme",
-  "displayName": "Pore Theme",
-  "description": "Gothic pastel color themes from Pore, Malkuth and Demon Night illustrations, with built-in per-theme background art that switches instantly with the theme.",
-  "version": "2.3.1",
+  "displayName": "FTVOT Character Themes",
+  "description": "Gothic pastel color themes for VS Code from FTVOT_STUDIO characters: Pore, Malkuth and Demon Night. Built-in per-theme background art that switches instantly with the theme.",
+  "version": "2.3.2",
   "publisher": "ftvot-studio",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/FTVOT-STUDIO/pore-theme"
+    "url": "https://github.com/FTVOT-STUDIO/ftvot-character-themes"
   },
   "engines": {
     "vscode": "^1.70.0"
@@ -83,21 +83,21 @@
       {
         "command": "poreTheme.setBackground",
         "title": "현재 테마에 배경 이미지 지정",
-        "category": "Pore Theme"
+        "category": "FTVOT Character Themes"
       },
       {
         "command": "poreTheme.clearBackground",
         "title": "현재 테마의 배경 이미지 제거",
-        "category": "Pore Theme"
+        "category": "FTVOT Character Themes"
       },
       {
         "command": "poreTheme.removePatch",
         "title": "배경 기능 끄기 (VS Code 원본 복구)",
-        "category": "Pore Theme"
+        "category": "FTVOT Character Themes"
       }
     ],
     "configuration": {
-      "title": "Pore Theme",
+      "title": "FTVOT Character Themes",
       "properties": {
         "poreTheme.backgrounds": {
           "type": "object",

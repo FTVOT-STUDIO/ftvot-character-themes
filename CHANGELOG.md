@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.2 - 2026-11-11
+- 이름 변경: Pore Theme → FTVOT Character Themes (저장소 `FTVOT-STUDIO/ftvot-character-themes`). Pore 외 Malkuth, Demon Night 테마가 함께 들어 있어서 변경
+- 확장 ID(`ftvot-studio.pore-theme`)와 설정 키(`poreTheme.*`)는 유지해서 기존 설치본과 설정이 그대로 이어짐
+
 ## 2.3.1 - 2026-11-11
 - 버그 수정: 업데이트 후 새로 동봉된 배경(Pore Dark/Light, Demon Night)이 추가되지 않던 문제. settings.json이 저장 안 된 상태 등으로 설정 쓰기가 실패해도 "추가함" 기록이 먼저 남아 다시 시도하지 않았음. 이제 저장 성공 후에만 기록하고, 미저장 상태면 저장할 때 추가. 기존에 누락된 항목도 이번 업데이트에서 다시 추가됨
 

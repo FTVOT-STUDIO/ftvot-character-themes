@@ -1,6 +1,6 @@
-# Pore Theme
+# FTVOT Character Themes
 
-캐릭터 Pore, Malkuth, Demon Night 일러스트의 색감으로 만든 고딕 파스텔 VS Code 테마 모음입니다. 8종이 들어 있고, 테마마다 일러스트 배경이 함께 들어 있습니다. 테마를 바꾸면 배경도 리로드 없이 바로 바뀝니다.
+FTVOT_STUDIO 캐릭터 Pore, Malkuth, Demon Night 일러스트의 색감으로 만든 고딕 파스텔 VS Code 테마 모음입니다. 8종이 들어 있고, 테마마다 일러스트 배경이 함께 들어 있습니다. 테마를 바꾸면 배경도 리로드 없이 바로 바뀝니다.
 
 눈 피로를 줄이기 위해 다크 테마는 본문 대비를 11:1 이하, 문법 색은 9.5:1 이하로 제한하고, 라이트 테마는 배경 밝기를 순백보다 낮췄습니다. 모든 색은 WCAG AA(4.5:1) 이상입니다.
 
@@ -36,21 +36,21 @@
 ### 한 줄 설치 (Windows PowerShell)
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/FTVOT-STUDIO/pore-theme/main/install.ps1)))
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/FTVOT-STUDIO/ftvot-character-themes/main/install.ps1)))
 ```
 
 최신 릴리스를 받아 설치합니다. VS Code를 다시 열면 테마가 `Pore Snow Dark`로 바뀌고, 오른쪽 아래 **다시 로드**를 한 번 누르면 배경까지 적용됩니다. 다른 테마로 시작하려면 끝에 `-Theme "Malkuth Dark"`처럼 붙이시면 됩니다.
 
 ### 수동 설치
 
-1. [Releases](https://github.com/FTVOT-STUDIO/pore-theme/releases/latest)에서 `pore-theme-2.3.1.vsix` 다운로드
+1. [Releases](https://github.com/FTVOT-STUDIO/ftvot-character-themes/releases/latest)에서 `pore-theme-2.3.2.vsix` 다운로드
 2. VS Code에서 `Ctrl+Shift+P` 누르고 `Extensions: Install from VSIX...` 선택한 뒤 파일 지정
 3. `Ctrl+K Ctrl+T`에서 `Pore` 계열 테마 선택
 
 CLI로 설치할 수도 있습니다.
 
 ```bash
-code --install-extension pore-theme-2.3.1.vsix
+code --install-extension pore-theme-2.3.2.vsix
 ```
 
 ## OS 다크/라이트 모드에 맞춰 자동 전환
@@ -96,9 +96,9 @@ MIT. 자세한 내용은 [CREDITS.md](CREDITS.md)를 참고해 주세요.
 
 **배경 바꾸기 / 끄기**
 
-- `Ctrl+Shift+P` → `Pore Theme: 현재 테마에 배경 이미지 지정` → 이미지 선택. VS Code 내장 테마나 다른 확장 테마에도 지정할 수 있습니다.
-- `Pore Theme: 현재 테마의 배경 이미지 제거`
-- `Pore Theme: 배경 기능 끄기 (VS Code 원본 복구)`. 확장을 제거할 때도 자동으로 원본을 복구합니다.
+- `Ctrl+Shift+P` → `FTVOT Character Themes: 현재 테마에 배경 이미지 지정` → 이미지 선택. VS Code 내장 테마나 다른 확장 테마에도 지정할 수 있습니다.
+- `FTVOT Character Themes: 현재 테마의 배경 이미지 제거`
+- `FTVOT Character Themes: 배경 기능 끄기 (VS Code 원본 복구)`. 확장을 제거할 때도 자동으로 원본을 복구합니다.
 
 ```jsonc
 // settings.json에서 직접 편집할 수도 있습니다

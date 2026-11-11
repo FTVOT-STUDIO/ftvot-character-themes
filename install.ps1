@@ -1,7 +1,7 @@
-# Pore Theme 설치 스크립트 (Windows PowerShell 5.1 / PowerShell 7)
+# FTVOT Character Themes 설치 스크립트 (Windows PowerShell 5.1 / PowerShell 7)
 #
 # 테마만 설치:
-#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/FTVOT-STUDIO/pore-theme/main/install.ps1)))
+#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/FTVOT-STUDIO/ftvot-character-themes/main/install.ps1)))
 #
 # Snow/Malkuth 테마 배경은 확장에 동봉되어 자동 적용된다. 다른 그림을 쓰고 싶을 때만:
 #   ... -SnowBackground "C:\path\snow.png" -MalkuthBackground "C:\path\malkuth.png"
@@ -19,7 +19,7 @@ param(
 $ErrorActionPreference = "Stop"
 # PowerShell 5.1 기본 TLS 설정으로는 GitHub API 접속이 거절된다
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-$Repo = "FTVOT-STUDIO/pore-theme"
+$Repo = "FTVOT-STUDIO/ftvot-character-themes"
 $PoreDir = Join-Path $env:USERPROFILE ".pore-theme"
 
 $code = Get-Command code -ErrorAction SilentlyContinue
@@ -30,7 +30,7 @@ exit 1
 
 # 1) 최신 릴리스 .vsix 설치
 Write-Host "[1/3] 최신 릴리스 설치" -ForegroundColor Magenta
-$release = Invoke-RestMethod "https://api.github.com/repos/$Repo/releases/latest" -Headers @{ "User-Agent" = "pore-theme-installer" }
+$release = Invoke-RestMethod "https://api.github.com/repos/$Repo/releases/latest" -Headers @{ "User-Agent" = "ftvot-character-themes-installer" }
 $asset = $release.assets | Where-Object { $_.name -like "*.vsix" } | Select-Object -First 1
 if (-not $asset) { throw "릴리스에 .vsix 파일이 없습니다." }
 $vsix = Join-Path $env:TEMP $asset.name
