@@ -17,6 +17,9 @@ process.env.USERPROFILE = HOME;
 function makeVscode() {
 	const store = {}; // 'section.key' -> value
 	const listeners = [];
+	const saveListeners = [];
+	const textDocuments = [];
+	const status = [];
 	const messages = [];
 	const executed = [];
 	const installed = new Set();
@@ -39,7 +42,8 @@ function makeVscode() {
 	});
 
 	return {
-		store, messages, executed, installed,
+		store, messages, executed, installed, textDocuments, status,
+		save: () => { for (const d of textDocuments) d.isDirty = false; for (const l of saveListeners) l(textDocuments[0]); },
 		setDialog: (v) => (dialogResult = v),
 		setInfoAnswer: (v) => (infoAnswer = v),
 		api: {
@@ -47,12 +51,15 @@ function makeVscode() {
 			workspace: {
 				getConfiguration,
 				onDidChangeConfiguration: (fn) => { listeners.push(fn); return { dispose() {} }; },
+				onDidSaveTextDocument: (fn) => { saveListeners.push(fn); return { dispose() {} }; },
+				textDocuments,
 			},
 			window: {
 				showWarningMessage: (m) => messages.push(['warn', m]),
 				showErrorMessage: (m) => messages.push(['error', m]),
 				showInformationMessage: async (m) => { messages.push(['info', m]); return infoAnswer; },
 				showOpenDialog: async () => dialogResult,
+				setStatusBarMessage: (m) => status.push(m),
 			},
 			extensions: { getExtension: (id) => (installed.has(id) ? { id } : undefined) },
 			commands: {
@@ -207,6 +214,39 @@ const tick = () => new Promise((r) => setImmediate(r));
 		const uri = ext._internal.toFileUri('/home/x/a b.png');
 		assert.strictEqual(uri, 'file:///home/x/a b.png');
 		console.log('ok 10 file URI 변환');
+	}
+
+	// 11) settings.json이 저장 안 된 상태면 쓰지 않고, 저장하는 순간 적용
+	{
+		const fake = makeVscode();
+		fake.installed.add('shalldie.background');
+		fake.textDocuments.push({ isDirty: true, uri: { fsPath: 'C:\\Users\\me\\AppData\\Roaming\\Code\\User\\settings.json' } });
+		const ext = loadExtension(fake);
+		fs.writeFileSync(ext._internal.SETUP_FILE, JSON.stringify({ theme: 'Malkuth Dark', backgrounds: { 'Malkuth Dark': img2 } }));
+		assert.strictEqual(ext._internal.userSettingsDirty(), true);
+		await ext.activate(makeContext());
+		assert.strictEqual(fake.store['workbench.colorTheme'], undefined, 'dirty 상태에서는 쓰면 안 됨');
+		assert.strictEqual(fake.store['background.enabled'], undefined);
+		assert.ok(fs.existsSync(ext._internal.SETUP_FILE), 'setup.json은 보존');
+		assert.strictEqual(fake.messages.filter(([t]) => t === 'error').length, 0, '에러 팝업 없음');
+		assert.strictEqual(fake.status.length, 1, '상태바 안내 1회');
+		fake.save();
+		await tick(); await tick(); await tick();
+		assert.strictEqual(fake.store['workbench.colorTheme'], 'Malkuth Dark');
+		assert.strictEqual(fake.store['background.enabled'], true);
+		assert.ok(fake.store['background.fullscreen'].images[0].endsWith('/malkuth.png'));
+		assert.ok(!fs.existsSync(ext._internal.SETUP_FILE));
+		console.log('ok 11 저장 안 된 settings.json → 저장 시 자동 적용');
+	}
+
+	// 12) 다른 파일이 dirty인 건 상관없음
+	{
+		const fake = makeVscode();
+		fake.installed.add('shalldie.background');
+		fake.textDocuments.push({ isDirty: true, uri: { fsPath: '/proj/index.html' } });
+		const ext = loadExtension(fake);
+		assert.strictEqual(ext._internal.userSettingsDirty(), false);
+		console.log('ok 12 다른 파일 dirty는 무시');
 	}
 
 	fs.rmSync(HOME, { recursive: true, force: true });

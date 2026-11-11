@@ -33,6 +33,36 @@ function fileExists(p) {
 	}
 }
 
+/**
+ * 사용자 settings.json이 편집기에서 저장 안 된 상태면 VS Code가 Configuration API 쓰기를 거부하고
+ * 매번 에러 토스트를 띄운다. 쓰기 전에 직접 확인해서 아예 시도하지 않는다.
+ */
+function userSettingsDirty() {
+	return vscode.workspace.textDocuments.some((d) => {
+		if (!d.isDirty) return false;
+		const f = d.uri.fsPath.replace(/\\/g, '/').toLowerCase();
+		return f.endsWith('/user/settings.json') || /\/user\/profiles\/[^/]+\/settings\.json$/.test(f);
+	});
+}
+
+// 저장 대기 중인 작업. 같은 작업이 여러 번 쌓이지 않도록 Set
+const pendingOnSave = new Set();
+let dirtyNoticeShown = false;
+
+function deferUntilSaved(task) {
+	pendingOnSave.add(task);
+	if (!dirtyNoticeShown) {
+		dirtyNoticeShown = true;
+		// 에러 대신 상태바에 잠깐만 안내. 저장하면 알아서 적용되니 사용자가 할 일은 저장뿐
+		vscode.window.setStatusBarMessage('Pore Theme: settings.json을 저장하면 배경이 적용됩니다', 8000);
+	}
+}
+
+function isUserSettingsWriteError(err) {
+	const msg = String(err && err.message || err);
+	return /unsaved|저장되지 않은|dirty/i.test(msg);
+}
+
 function currentThemeLabel() {
 	return vscode.workspace.getConfiguration('workbench').get('colorTheme', '');
 }
@@ -52,6 +82,10 @@ function bgExtensionInstalled() {
  * 불필요한 쓰기는 곧 불필요한 재시작 팝업이다.
  */
 async function syncBackground(context) {
+	if (userSettingsDirty()) {
+		deferUntilSaved('sync');
+		return 'deferred';
+	}
 	const cfg = vscode.workspace.getConfiguration(SECTION);
 	if (!cfg.get('background.enabled', true)) return 'disabled';
 	if (!bgExtensionInstalled()) return 'no-extension';
@@ -96,6 +130,10 @@ async function syncBackground(context) {
 /** 설치 스크립트가 남긴 setup.json 적용. 테마 선택, 테마별 배경 경로, 투명도 */
 async function applySetupFile() {
 	if (!fs.existsSync(SETUP_FILE)) return false;
+	if (userSettingsDirty()) {
+		deferUntilSaved('setup');
+		return false;
+	}
 	let setup;
 	try {
 		setup = JSON.parse(fs.readFileSync(SETUP_FILE, 'utf8').replace(/^﻿/, ''));
@@ -169,16 +207,43 @@ async function activate(context) {
 		// 테마 전환, 배경 매핑 변경 둘 다 같은 동기화로 처리
 		vscode.workspace.onDidChangeConfiguration((e) => {
 			if (e.affectsConfiguration('workbench.colorTheme') || e.affectsConfiguration(SECTION)) {
-				syncBackground(context).catch((err) => console.error('[pore-theme]', err));
+				safeSync(context);
 			}
+		}),
+		// settings.json 저장 순간 보류했던 작업 실행
+		vscode.workspace.onDidSaveTextDocument(() => {
+			if (!pendingOnSave.size || userSettingsDirty()) return;
+			const tasks = [...pendingOnSave];
+			pendingOnSave.clear();
+			dirtyNoticeShown = false;
+			runStartup(context, tasks.includes('setup')).catch((err) => console.error('[pore-theme]', err));
 		})
 	);
 
-	const hadSetup = await applySetupFile();
-	if (hadSetup && Object.keys(backgroundsMap()).length) await ensureBgExtension();
-	await syncBackground(context);
+	await runStartup(context, true);
+}
+
+/** 설정 쓰기 실패를 사용자 에러 팝업으로 흘리지 않는다. 저장 안 된 settings.json 때문이면 저장 후 재시도 */
+async function safeSync(context) {
+	try {
+		await syncBackground(context);
+	} catch (err) {
+		if (isUserSettingsWriteError(err)) deferUntilSaved('sync');
+		else console.error('[pore-theme]', err);
+	}
+}
+
+async function runStartup(context, withSetup) {
+	try {
+		const hadSetup = withSetup ? await applySetupFile() : false;
+		if (hadSetup && Object.keys(backgroundsMap()).length) await ensureBgExtension();
+		await syncBackground(context);
+	} catch (err) {
+		if (isUserSettingsWriteError(err)) deferUntilSaved(withSetup ? 'setup' : 'sync');
+		else throw err;
+	}
 }
 
 function deactivate() {}
 
-module.exports = { activate, deactivate, _internal: { toFileUri, syncBackground, applySetupFile, SETUP_FILE, MANAGED_KEY } };
+module.exports = { activate, deactivate, _internal: { toFileUri, syncBackground, applySetupFile, userSettingsDirty, SETUP_FILE, MANAGED_KEY } };

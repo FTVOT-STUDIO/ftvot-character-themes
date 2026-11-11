@@ -37,14 +37,14 @@
 
 ### 수동 설치
 
-1. [Releases](https://github.com/FTVOT-STUDIO/pore-theme/releases/latest)에서 `pore-theme-2.1.0.vsix` 다운로드
+1. [Releases](https://github.com/FTVOT-STUDIO/pore-theme/releases/latest)에서 `pore-theme-2.1.1.vsix` 다운로드
 2. VS Code에서 `Ctrl+Shift+P` 누르고 `Extensions: Install from VSIX...` 선택한 뒤 파일 지정
 3. `Ctrl+K Ctrl+T`에서 `Pore` 계열 테마 선택
 
 CLI로 설치할 수도 있습니다.
 
 ```bash
-code --install-extension pore-theme-2.1.0.vsix
+code --install-extension pore-theme-2.1.1.vsix
 ```
 
 ## OS 다크/라이트 모드에 맞춰 자동 전환
