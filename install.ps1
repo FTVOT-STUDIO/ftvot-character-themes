@@ -1,7 +1,7 @@
 # Pore Theme 설치 스크립트 (Windows PowerShell 5.1 / PowerShell 7)
 #
 # 테마만 설치:
-#   irm https://raw.githubusercontent.com/FTVOT-STUDIO/pore-theme/main/install.ps1 | iex
+#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/FTVOT-STUDIO/pore-theme/main/install.ps1)))
 #
 # 테마 + 배경 이미지 (shalldie.background 확장 사용):
 #   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/FTVOT-STUDIO/pore-theme/main/install.ps1))) -Background "$env:USERPROFILE\Pictures\pore-snow-bg.png"
@@ -13,6 +13,8 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+# PowerShell 5.1 기본 TLS 설정으로는 GitHub API 접속이 거절된다
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $Repo = "FTVOT-STUDIO/pore-theme"
 
 # code CLI가 없으면 아무것도 못 하니 제일 먼저 확인

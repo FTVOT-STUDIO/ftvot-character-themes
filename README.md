@@ -22,7 +22,7 @@
 ### 한 줄 설치 (Windows PowerShell)
 
 ```powershell
-irm https://raw.githubusercontent.com/FTVOT-STUDIO/pore-theme/main/install.ps1 | iex
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/FTVOT-STUDIO/pore-theme/main/install.ps1)))
 ```
 
 최신 릴리스를 받아 설치하고 테마를 `Pore Snow Dark`로 바꿉니다. 배경 이미지를 같이 깔려면 [배경 이미지](#배경-이미지-선택) 항목을 참고해 주세요.
