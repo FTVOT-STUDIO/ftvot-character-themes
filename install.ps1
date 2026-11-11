@@ -3,8 +3,8 @@
 # 테마만 설치:
 #   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/FTVOT-STUDIO/pore-theme/main/install.ps1)))
 #
-# 테마 + 테마별 배경 이미지:
-#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/FTVOT-STUDIO/pore-theme/main/install.ps1))) -SnowBackground "$env:USERPROFILE\Pictures\pore-snow-bg.png" -MalkuthBackground "$env:USERPROFILE\Pictures\malkuth-bg.png"
+# Snow/Malkuth 테마 배경은 확장에 동봉되어 자동 적용된다. 다른 그림을 쓰고 싶을 때만:
+#   ... -SnowBackground "C:\path\snow.png" -MalkuthBackground "C:\path\malkuth.png"
 #
 # settings.json은 이 스크립트가 직접 건드리지 않는다. ~/.pore-theme/setup.json만 남기고,
 # VS Code가 켜질 때 확장이 Configuration API로 적용한다. 그래서 주석이 있어도 안전하다.
@@ -63,10 +63,8 @@ Write-Host "  $name -> $($themes -join ', ')" -ForegroundColor DarkGray
 Write-Host "[2/3] 배경 이미지 준비" -ForegroundColor Magenta
 Add-Background $backgrounds $SnowBackground "snow" @("Pore Snow Dark", "Pore Snow Light")
 Add-Background $backgrounds $MalkuthBackground "malkuth" @("Malkuth Dark", "Malkuth Light")
-if ($backgrounds.Count -gt 0) {
-& code --install-extension shalldie.background | Out-Host
-} else {
-Write-Host "  배경 이미지 생략" -ForegroundColor DarkGray
+if ($backgrounds.Count -eq 0) {
+Write-Host "  동봉 배경 사용" -ForegroundColor DarkGray
 }
 
 # 3) 확장이 다음 실행 때 읽어갈 1회용 설정
@@ -76,7 +74,5 @@ $json = $setup | ConvertTo-Json -Depth 5
 [System.IO.File]::WriteAllText((Join-Path $PoreDir "setup.json"), $json, (New-Object System.Text.UTF8Encoding($false)))
 
 Write-Host ""
-Write-Host "완료. VS Code를 완전히 종료했다가 다시 열면 테마와 배경이 적용됩니다." -ForegroundColor Green
-if ($backgrounds.Count -gt 0) {
-Write-Host "배경 확장이 '설치가 손상되었습니다' 경고나 재시작 안내를 띄울 수 있습니다. 정상 동작입니다." -ForegroundColor DarkGray
-}
+Write-Host "완료. VS Code를 다시 열고, 오른쪽 아래 '다시 로드' 안내를 한 번 누르면 배경까지 적용됩니다." -ForegroundColor Green
+Write-Host "그 뒤로는 테마를 바꿀 때 배경이 리로드 없이 즉시 바뀝니다." -ForegroundColor DarkGray

@@ -15,13 +15,15 @@ ROOT = Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
 
 # 패키지에 넣을 파일 (빌드 스크립트, 미리보기는 제외)
-INCLUDE = ["package.json", "extension.js", "README.md", "CHANGELOG.md", "LICENSE", "CREDITS.md", "themes"]
+INCLUDE = ["package.json", "extension.js", "uninstall.js", "README.md", "CHANGELOG.md", "LICENSE", "CREDITS.md", "themes", "media"]
 
 CONTENT_TYPES = """<?xml version="1.0" encoding="utf-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
 <Default Extension=".json" ContentType="application/json"/>
 <Default Extension=".md" ContentType="text/markdown"/>
 <Default Extension=".js" ContentType="application/javascript"/>
+<Default Extension=".jpg" ContentType="image/jpeg"/>
+<Default Extension=".png" ContentType="image/png"/>
 <Default Extension=".txt" ContentType="text/plain"/>
 <Default Extension=".vsixmanifest" ContentType="text/xml"/>
 <Default Extension="" ContentType="application/octet-stream"/>

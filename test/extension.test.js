@@ -1,4 +1,4 @@
-// extension.js 동작 테스트. 진짜 VS Code 없이 vscode 모듈을 가짜로 끼워서 설정 쓰기 흐름만 검증한다.
+// extension.js 동작 테스트. 진짜 VS Code 대신 가짜 vscode 모듈과 임시 workbench.html 로 검증한다.
 // 실행: node test/extension.test.js
 'use strict';
 
@@ -8,31 +8,36 @@ const os = require('os');
 const path = require('path');
 const Module = require('module');
 
-// SETUP_FILE이 require 시점에 홈 경로로 고정되므로 HOME을 먼저 바꾼다
+// ~/.pore-theme 경로가 require 시점에 고정되므로 HOME을 먼저 바꾼다
 const HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'pore-home-'));
 process.env.HOME = HOME;
 process.env.USERPROFILE = HOME;
 
-// ---- 가짜 vscode ----
+const APP_ROOT = path.join(HOME, 'vscode-app');
+const HTML = path.join(APP_ROOT, 'out/vs/code/electron-browser/workbench/workbench.html');
+const ORIGINAL_HTML = '<!DOCTYPE html>\n<html>\n<head><meta http-equiv="Content-Security-Policy" content="style-src \'self\' \'unsafe-inline\';"></head>\n<body></body>\n</html>\n';
+
+const PORE_EXT = {
+	id: 'ftvot-studio.pore-theme',
+	packageJSON: { contributes: { themes: [
+		{ label: 'Pore Snow Dark', path: './themes/pore-snow-dark-color-theme.json' },
+		{ label: 'Malkuth Dark', path: './themes/malkuth-dark-color-theme.json' },
+		{ label: 'Pore Dark', path: './themes/pore-dark-color-theme.json' },
+	] } },
+};
+const BUILTIN = { id: 'vscode.theme-defaults', packageJSON: { contributes: { themes: [{ id: 'Default Dark Modern', label: 'Dark Modern', path: './themes/dark_modern.json' }] } } };
+
 function makeVscode() {
-	const store = {}; // 'section.key' -> value
+	const store = {};
 	const listeners = [];
 	const saveListeners = [];
 	const textDocuments = [];
-	const status = [];
 	const messages = [];
 	const executed = [];
-	const installed = new Set();
-	let dialogResult = undefined;
-	let infoAnswer = undefined;
-
+	let infoAnswer;
+	let dialogResult;
 	const getConfiguration = (section) => ({
-		get(key, def) {
-			const full = `${section}.${key}`;
-			if (full in store) return store[full];
-			// 'background' 섹션 전체를 객체로 읽는 경우(fullscreen 등)
-			return def;
-		},
+		get(key, def) { const k = `${section}.${key}`; return k in store ? store[k] : def; },
 		async update(key, value) {
 			const full = `${section}.${key}`;
 			store[full] = value;
@@ -40,213 +45,246 @@ function makeVscode() {
 			for (const l of listeners) l(e);
 		},
 	});
-
 	return {
-		store, messages, executed, installed, textDocuments, status,
-		save: () => { for (const d of textDocuments) d.isDirty = false; for (const l of saveListeners) l(textDocuments[0]); },
-		setDialog: (v) => (dialogResult = v),
+		store, messages, executed, textDocuments,
 		setInfoAnswer: (v) => (infoAnswer = v),
+		setDialog: (v) => (dialogResult = v),
+		save: () => { for (const d of textDocuments) d.isDirty = false; for (const l of saveListeners) l(); },
 		api: {
 			ConfigurationTarget: { Global: 1 },
+			env: { appRoot: APP_ROOT },
 			workspace: {
 				getConfiguration,
+				textDocuments,
 				onDidChangeConfiguration: (fn) => { listeners.push(fn); return { dispose() {} }; },
 				onDidSaveTextDocument: (fn) => { saveListeners.push(fn); return { dispose() {} }; },
-				textDocuments,
 			},
 			window: {
 				showWarningMessage: (m) => messages.push(['warn', m]),
 				showErrorMessage: (m) => messages.push(['error', m]),
 				showInformationMessage: async (m) => { messages.push(['info', m]); return infoAnswer; },
 				showOpenDialog: async () => dialogResult,
-				setStatusBarMessage: (m) => status.push(m),
+				setStatusBarMessage: (m) => messages.push(['status', m]),
 			},
-			extensions: { getExtension: (id) => (installed.has(id) ? { id } : undefined) },
+			extensions: { all: [PORE_EXT, BUILTIN] },
 			commands: {
 				registerCommand: (id, fn) => ({ id, fn, dispose() {} }),
-				executeCommand: async (id, arg) => { executed.push([id, arg]); if (id === 'workbench.extensions.installExtension') installed.add(arg); },
+				executeCommand: async (id) => { executed.push(id); },
 			},
 		},
 	};
 }
 
 function loadExtension(fake) {
-	const origResolve = Module._resolveFilename;
-	Module._resolveFilename = function (req, ...rest) {
-		if (req === 'vscode') return 'vscode';
-		return origResolve.call(this, req, ...rest);
-	};
+	const orig = Module._resolveFilename;
+	Module._resolveFilename = function (req, ...rest) { return req === 'vscode' ? 'vscode' : orig.call(this, req, ...rest); };
 	require.cache.vscode = { id: 'vscode', filename: 'vscode', loaded: true, exports: fake.api };
 	const p = require.resolve('../extension.js');
 	delete require.cache[p];
 	const ext = require(p);
-	Module._resolveFilename = origResolve;
+	Module._resolveFilename = orig;
 	return ext;
 }
 
-function makeContext() {
+function makeContext(extensionPath = path.join(HOME, 'ext')) {
 	const state = {};
-	return {
-		subscriptions: [],
-		globalState: { get: (k, d) => (k in state ? state[k] : d), update: async (k, v) => { state[k] = v; } },
-		state,
-	};
+	return { subscriptions: [], extensionPath, globalState: { get: (k, d) => (k in state ? state[k] : d), update: async (k, v) => { state[k] = v; } }, state };
 }
 
-const tick = () => new Promise((r) => setImmediate(r));
+function resetHtml() {
+	fs.mkdirSync(path.dirname(HTML), { recursive: true });
+	fs.writeFileSync(HTML, ORIGINAL_HTML);
+}
+
+const settle = async () => { for (let i = 0; i < 8; i++) await new Promise((r) => setImmediate(r)); };
+const count = (s, needle) => s.split(needle).length - 1;
 
 (async () => {
-	const img = path.join(HOME, 'snow.png');
-	const img2 = path.join(HOME, 'malkuth.png');
-	fs.writeFileSync(img, 'x');
-	fs.writeFileSync(img2, 'x');
+	const snow = path.join(HOME, 'snow.png');
+	const malkuth = path.join(HOME, 'malkuth (1).png');
+	fs.writeFileSync(snow, 'x');
+	fs.writeFileSync(malkuth, 'x');
 
-	// 1) setup.json 적용: 테마, 배경 맵, 투명도가 Configuration API로 들어가고 파일은 삭제
+	// 1) 테마 → CSS 클래스 규칙 (VS Code colorThemeData.toCSSSelector 와 동일)
 	{
+		const ext = loadExtension(makeVscode());
+		const { themeCssClass } = ext._internal;
+		assert.strictEqual(themeCssClass('ftvot-studio.pore-theme', './themes/pore-snow-dark-color-theme.json'), 'ftvot-studio-pore-theme-themes-pore-snow-dark-color-theme-json');
+		assert.strictEqual(themeCssClass('vscode.theme-defaults', './themes/dark_modern.json'), 'vscode-theme-defaults-themes-dark_modern-json');
+		console.log('ok 1 테마 CSS 클래스');
+	}
+
+	// 2) setup.json → 설정 적용 → HTML 패치 1회 → 리로드 안내 1회
+	{
+		resetHtml();
 		const fake = makeVscode();
-		fake.installed.add('shalldie.background');
 		const ext = loadExtension(fake);
 		fs.mkdirSync(path.dirname(ext._internal.SETUP_FILE), { recursive: true });
-		fs.writeFileSync(ext._internal.SETUP_FILE, '﻿' + JSON.stringify({ theme: 'Pore Snow Dark', opacity: 0.1, backgrounds: { 'Pore Snow Dark': img, 'Malkuth Dark': img2 } }));
-		const ctx = makeContext();
-		await ext.activate(ctx);
-		await tick();
+		fs.writeFileSync(ext._internal.SETUP_FILE, '\uFEFF' + JSON.stringify({ theme: 'Pore Snow Dark', opacity: 0.1, backgrounds: { 'Pore Snow Dark': snow, 'Malkuth Dark': malkuth } }));
+		await ext.activate(makeContext());
+		await settle();
 		assert.strictEqual(fake.store['workbench.colorTheme'], 'Pore Snow Dark');
-		assert.deepStrictEqual(Object.keys(fake.store['poreTheme.backgrounds']), ['Pore Snow Dark', 'Malkuth Dark']);
-		assert.strictEqual(fake.store['background.enabled'], true);
-		assert.strictEqual(fake.store['background.fullscreen'].opacity, 0.1);
-		assert.ok(fake.store['background.fullscreen'].images[0].startsWith('file:///'));
-		assert.ok(fake.store['background.fullscreen'].images[0].endsWith('/snow.png'));
-		assert.ok(!fs.existsSync(ext._internal.SETUP_FILE), 'setup.json은 적용 후 삭제돼야 함');
-		console.log('ok 1 setup.json 적용');
+		const html = fs.readFileSync(HTML, 'utf8');
+		assert.ok(html.includes(ext._internal.MARK_START));
+		assert.ok(html.includes('.monaco-workbench.ftvot-studio-pore-theme-themes-pore-snow-dark-color-theme-json)::before'));
+		assert.ok(html.includes('.monaco-workbench.ftvot-studio-pore-theme-themes-malkuth-dark-color-theme-json)::before'));
+		assert.ok(html.includes('vscode-file://vscode-app/'));
+		assert.ok(html.includes('malkuth%20%281%29.png'), '공백/괄호 인코딩');
+		assert.ok(html.includes('opacity:0.1'));
+		assert.strictEqual(count(html, 'pore-theme-bg-start'), 1, '패치는 한 번만');
+		assert.strictEqual(fake.messages.filter(([t, m]) => t === 'info' && m.includes('다시 로드')).length, 1, '리로드 안내 1회');
+		assert.ok(!fs.existsSync(ext._internal.SETUP_FILE));
+		assert.ok(fs.existsSync(ext._internal.PATCH_RECORD));
+		console.log('ok 2 설치 직후 1회 패치');
 
-		// 2) 다른 Pore 테마로 바꾸면 그 테마 이미지로 교체
+		// 3) 테마 전환은 설정/HTML 아무것도 안 건드림 (= 리로드 없음)
+		const before = fs.readFileSync(HTML, 'utf8');
+		const msgCount = fake.messages.length;
 		await fake.api.workspace.getConfiguration('workbench').update('colorTheme', 'Malkuth Dark');
-		await tick(); await tick();
-		assert.ok(fake.store['background.fullscreen'].images[0].endsWith('/malkuth.png'));
-		assert.strictEqual(fake.store['background.enabled'], true);
-		console.log('ok 2 테마 전환 시 이미지 교체');
+		await fake.api.workspace.getConfiguration('workbench').update('colorTheme', 'Pore Dark');
+		await settle();
+		assert.strictEqual(fs.readFileSync(HTML, 'utf8'), before);
+		assert.strictEqual(fake.messages.length, msgCount);
+		console.log('ok 3 테마 전환 시 리로드 없음');
 
-		// 3) 배경 없는 테마로 바꾸면 꺼짐
-		await fake.api.workspace.getConfiguration('workbench').update('colorTheme', 'Default Dark Modern');
-		await tick(); await tick();
-		assert.strictEqual(fake.store['background.enabled'], false);
-		assert.strictEqual(ctx.state[ext._internal.MANAGED_KEY], false);
-		console.log('ok 3 다른 테마에서는 배경 꺼짐');
+		// 4) 같은 설정 재적용 → 변화 없음
+		assert.strictEqual(await ext._internal.applyBackgrounds(), 'unchanged');
+		console.log('ok 4 동일 설정이면 재패치 안 함');
 
-		// 4) 다시 Snow로 오면 켜짐
-		await fake.api.workspace.getConfiguration('workbench').update('colorTheme', 'Pore Snow Dark');
-		await tick(); await tick();
-		assert.strictEqual(fake.store['background.enabled'], true);
-		assert.ok(fake.store['background.fullscreen'].images[0].endsWith('/snow.png'));
-		console.log('ok 4 복귀 시 다시 켜짐');
+		// 5) 배경 매핑 변경 → 재패치
+		await fake.api.workspace.getConfiguration('poreTheme').update('backgrounds', { 'Pore Snow Dark': snow });
+		await settle();
+		const after = fs.readFileSync(HTML, 'utf8');
+		assert.ok(!after.includes('malkuth-dark-color-theme-json'));
+		assert.strictEqual(count(after, 'pore-theme-bg-start'), 1);
+		console.log('ok 5 매핑 변경 시 재패치');
 
-		// 5) 같은 상태면 다시 쓰지 않음 (background 확장 재시작 팝업 방지)
-		let writes = 0;
-		const origUpdate = fake.api.workspace.getConfiguration;
-		fake.api.workspace.getConfiguration = (s) => { const c = origUpdate(s); const u = c.update; c.update = async (...a) => { if (s === 'background') writes++; return u.apply(c, a); }; return c; };
-		const r = await ext._internal.syncBackground(ctx);
-		assert.strictEqual(r, 'unchanged');
-		assert.strictEqual(writes, 0);
-		fake.api.workspace.getConfiguration = origUpdate;
-		console.log('ok 5 변화 없으면 쓰기 생략');
+		// 6) 매핑 비우면 패치 완전 제거 → 원본 HTML 복원
+		await fake.api.workspace.getConfiguration('poreTheme').update('backgrounds', {});
+		await settle();
+		assert.strictEqual(fs.readFileSync(HTML, 'utf8'), ORIGINAL_HTML);
+		console.log('ok 6 매핑 비우면 원본 복원');
 	}
 
-	// 6) 사용자가 원래 쓰던 background 설정은 Pore가 켠 게 아니면 건드리지 않음
+	// 7) VS Code 업데이트로 HTML이 새로 깔리면 시작 시 다시 패치
 	{
+		resetHtml();
 		const fake = makeVscode();
-		fake.installed.add('shalldie.background');
-		fake.store['background.enabled'] = true;
-		fake.store['workbench.colorTheme'] = 'One Dark Pro';
-		const ext = loadExtension(fake);
-		const ctx = makeContext();
-		await ext.activate(ctx);
-		assert.strictEqual(fake.store['background.enabled'], true);
-		console.log('ok 6 남의 배경 설정은 유지');
-	}
-
-	// 7) 배경 확장이 없으면 설치 제안, '설치' 선택 시 설치 명령 실행
-	{
-		const fake = makeVscode();
-		const ext = loadExtension(fake);
-		fs.writeFileSync(ext._internal.SETUP_FILE, JSON.stringify({ theme: 'Pore Snow Dark', backgrounds: { 'Pore Snow Dark': img } }));
-		fake.setInfoAnswer('설치');
-		await ext.activate(makeContext());
-		assert.deepStrictEqual(fake.executed[0], ['workbench.extensions.installExtension', 'shalldie.background']);
-		assert.strictEqual(fake.store['background.enabled'], true);
-		console.log('ok 7 배경 확장 자동 설치 제안');
-	}
-
-	// 8) 이미지 파일이 없으면 경고만 띄우고 켜지 않음
-	{
-		const fake = makeVscode();
-		fake.installed.add('shalldie.background');
-		fake.store['workbench.colorTheme'] = 'Pore Snow Dark';
-		fake.store['poreTheme.backgrounds'] = { 'Pore Snow Dark': path.join(HOME, 'missing.png') };
+		fake.store['poreTheme.backgrounds'] = { 'Pore Snow Dark': snow };
 		const ext = loadExtension(fake);
 		await ext.activate(makeContext());
-		assert.notStrictEqual(fake.store['background.enabled'], true);
-		assert.ok(fake.messages.some(([t]) => t === 'warn'));
-		console.log('ok 8 없는 이미지는 경고');
+		await settle();
+		assert.ok(fs.readFileSync(HTML, 'utf8').includes('pore-snow-dark-color-theme-json'));
+		console.log('ok 7 업데이트 후 자동 재패치');
 	}
 
-	// 9) 명령: 파일 선택 → 현재 테마에 매핑
+	// 8) 내장 테마도 라벨/ID로 지정 가능, 없는 테마·없는 파일은 경고
 	{
+		resetHtml();
 		const fake = makeVscode();
-		fake.installed.add('shalldie.background');
-		fake.store['workbench.colorTheme'] = 'Malkuth Light';
+		fake.store['poreTheme.backgrounds'] = { 'Default Dark Modern': snow, 'Nope Theme': snow, 'Pore Dark': path.join(HOME, 'missing.png') };
 		const ext = loadExtension(fake);
-		const ctx = makeContext();
-		await ext.activate(ctx);
-		fake.setDialog([{ fsPath: img2 }]);
-		const cmd = ctx.subscriptions.find((s) => s.id === 'poreTheme.setBackground');
-		await cmd.fn();
-		await tick();
-		assert.strictEqual(fake.store['poreTheme.backgrounds']['Malkuth Light'], img2);
-		assert.strictEqual(fake.store['background.enabled'], true);
-		console.log('ok 9 배경 지정 명령');
+		await ext.activate(makeContext());
+		await settle();
+		assert.ok(fs.readFileSync(HTML, 'utf8').includes('vscode-theme-defaults-themes-dark_modern-json'));
+		const warns = fake.messages.filter(([t]) => t === 'warn').map(([, m]) => m).join('|');
+		assert.ok(warns.includes('Nope Theme'));
+		assert.ok(warns.includes('Pore Dark'));
+		console.log('ok 8 내장 테마 지원, 잘못된 항목 경고');
 	}
 
-	// 10) Windows 경로 → file URI
+	// 9) settings.json 이 dirty 면 setup 보류, 저장하면 적용
 	{
+		resetHtml();
 		const fake = makeVscode();
-		const ext = loadExtension(fake);
-		const uri = ext._internal.toFileUri('/home/x/a b.png');
-		assert.strictEqual(uri, 'file:///home/x/a b.png');
-		console.log('ok 10 file URI 변환');
-	}
-
-	// 11) settings.json이 저장 안 된 상태면 쓰지 않고, 저장하는 순간 적용
-	{
-		const fake = makeVscode();
-		fake.installed.add('shalldie.background');
 		fake.textDocuments.push({ isDirty: true, uri: { fsPath: 'C:\\Users\\me\\AppData\\Roaming\\Code\\User\\settings.json' } });
 		const ext = loadExtension(fake);
-		fs.writeFileSync(ext._internal.SETUP_FILE, JSON.stringify({ theme: 'Malkuth Dark', backgrounds: { 'Malkuth Dark': img2 } }));
-		assert.strictEqual(ext._internal.userSettingsDirty(), true);
+		fs.writeFileSync(ext._internal.SETUP_FILE, JSON.stringify({ theme: 'Malkuth Dark', backgrounds: { 'Malkuth Dark': malkuth } }));
 		await ext.activate(makeContext());
-		assert.strictEqual(fake.store['workbench.colorTheme'], undefined, 'dirty 상태에서는 쓰면 안 됨');
-		assert.strictEqual(fake.store['background.enabled'], undefined);
-		assert.ok(fs.existsSync(ext._internal.SETUP_FILE), 'setup.json은 보존');
-		assert.strictEqual(fake.messages.filter(([t]) => t === 'error').length, 0, '에러 팝업 없음');
-		assert.strictEqual(fake.status.length, 1, '상태바 안내 1회');
+		await settle();
+		assert.strictEqual(fake.store['workbench.colorTheme'], undefined);
+		assert.ok(fs.existsSync(ext._internal.SETUP_FILE));
+		assert.strictEqual(fake.messages.filter(([t]) => t === 'error').length, 0);
 		fake.save();
-		await tick(); await tick(); await tick();
+		await settle();
 		assert.strictEqual(fake.store['workbench.colorTheme'], 'Malkuth Dark');
-		assert.strictEqual(fake.store['background.enabled'], true);
-		assert.ok(fake.store['background.fullscreen'].images[0].endsWith('/malkuth.png'));
-		assert.ok(!fs.existsSync(ext._internal.SETUP_FILE));
-		console.log('ok 11 저장 안 된 settings.json → 저장 시 자동 적용');
+		assert.ok(fs.readFileSync(HTML, 'utf8').includes('malkuth-dark-color-theme-json'));
+		console.log('ok 9 dirty settings.json 보류 후 저장 시 적용');
 	}
 
-	// 12) 다른 파일이 dirty인 건 상관없음
+	// 10) v2.1 마이그레이션: 우리가 켰던 shalldie background 는 끈다, 남이 켠 건 유지
 	{
+		resetHtml();
 		const fake = makeVscode();
-		fake.installed.add('shalldie.background');
-		fake.textDocuments.push({ isDirty: true, uri: { fsPath: '/proj/index.html' } });
+		fake.store['background.enabled'] = true;
 		const ext = loadExtension(fake);
-		assert.strictEqual(ext._internal.userSettingsDirty(), false);
-		console.log('ok 12 다른 파일 dirty는 무시');
+		const ctx = makeContext();
+		ctx.state['poreTheme.backgroundManaged'] = true;
+		await ext.activate(ctx);
+		assert.strictEqual(fake.store['background.enabled'], false);
+
+		const fake2 = makeVscode();
+		fake2.store['background.enabled'] = true;
+		const ext2 = loadExtension(fake2);
+		await ext2.activate(makeContext());
+		assert.strictEqual(fake2.store['background.enabled'], true);
+		console.log('ok 10 shalldie 마이그레이션');
+	}
+
+	// 11) 동봉 이미지(media/backgrounds.json)가 있으면 첫 실행에 자동 지정, ~/.pore-theme 로 복사
+	{
+		resetHtml();
+		const extPath = path.join(HOME, 'ext-bundled');
+		fs.mkdirSync(path.join(extPath, 'media'), { recursive: true });
+		fs.writeFileSync(path.join(extPath, 'media', 'snow.jpg'), 'img');
+		fs.writeFileSync(path.join(extPath, 'media', 'backgrounds.json'), JSON.stringify({ 'Pore Snow Dark': 'snow.jpg' }));
+		const fake = makeVscode();
+		const ext = loadExtension(fake);
+		const ctx = makeContext(extPath);
+		await ext.activate(ctx);
+		await settle();
+		const map = fake.store['poreTheme.backgrounds'];
+		assert.ok(map['Pore Snow Dark'].endsWith('/.pore-theme/snow.jpg'));
+		assert.ok(fs.existsSync(path.join(HOME, '.pore-theme', 'snow.jpg')));
+		assert.ok(fs.readFileSync(HTML, 'utf8').includes('pore-snow-dark-color-theme-json'));
+		// 사용자가 지운 뒤에는 다시 채우지 않음
+		await fake.api.workspace.getConfiguration('poreTheme').update('backgrounds', {});
+		await ext.activate(ctx);
+		await settle();
+		assert.deepStrictEqual(fake.store['poreTheme.backgrounds'], {});
+		console.log('ok 11 동봉 기본 배경');
+	}
+
+	// 12) 명령: 이미지 선택 → ~/.pore-theme 로 복사 후 현재 테마에 매핑
+	{
+		resetHtml();
+		const fake = makeVscode();
+		fake.store['workbench.colorTheme'] = 'Malkuth Dark';
+		const ext = loadExtension(fake);
+		const ctx = makeContext();
+		await ext.activate(ctx);
+		fake.setDialog([{ fsPath: malkuth }]);
+		await ctx.subscriptions.find((s) => s.id === 'poreTheme.setBackground').fn();
+		await settle();
+		const p = fake.store['poreTheme.backgrounds']['Malkuth Dark'];
+		assert.ok(p.endsWith('/.pore-theme/malkuth-dark.png'));
+		assert.ok(fs.existsSync(p));
+		console.log('ok 12 배경 지정 명령 (복사본 사용)');
+	}
+
+	// 13) uninstall.js 가 패치 블록만 정확히 제거
+	{
+		resetHtml();
+		const fake = makeVscode();
+		fake.store['poreTheme.backgrounds'] = { 'Pore Snow Dark': snow };
+		const ext = loadExtension(fake);
+		await ext.activate(makeContext());
+		await settle();
+		assert.ok(fs.readFileSync(HTML, 'utf8').includes('pore-theme-bg-start'));
+		delete require.cache[require.resolve('../uninstall.js')];
+		require('../uninstall.js');
+		assert.strictEqual(fs.readFileSync(HTML, 'utf8'), ORIGINAL_HTML);
+		console.log('ok 13 제거 훅이 원본 복원');
 	}
 
 	fs.rmSync(HOME, { recursive: true, force: true });
