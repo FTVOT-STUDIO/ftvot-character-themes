@@ -331,6 +331,53 @@ const count = (s, needle) => s.split(needle).length - 1;
 		console.log('ok 11-b 기존 사용자에 새 동봉 배경 추가, 값 검증');
 	}
 
+	// 11-c) 회귀: 설정 쓰기가 실패하면 기록을 남기지 않고 다음에 다시 시도 / dirty면 저장 시 추가
+	{
+		resetHtml();
+		const extPath = path.join(HOME, 'ext-bundled3');
+		fs.mkdirSync(path.join(extPath, 'media'), { recursive: true });
+		fs.writeFileSync(path.join(extPath, 'media', 'demon.jpg'), 'img');
+		fs.writeFileSync(path.join(extPath, 'media', 'backgrounds.json'), JSON.stringify({ 'Pore Dark': 'demon.jpg' }));
+		const fake = makeVscode();
+		fake.store['poreTheme.backgrounds'] = { 'Pore Snow Dark': snow };
+		const ext = loadExtension(fake);
+		const ctx = makeContext(extPath);
+		// 옛 버전이 남긴 "제안함" 기록이 있어도 실제로 안 들어갔으면 다시 넣어야 함
+		ctx.state['poreTheme.bundledLabels'] = ['Pore Dark'];
+		// 첫 시도: poreTheme 쓰기를 실패시킴
+		const origGet = fake.api.workspace.getConfiguration;
+		fake.api.workspace.getConfiguration = (sec) => {
+			const c = origGet(sec);
+			if (sec === 'poreTheme') c.update = async () => { throw new Error('Unable to write into user settings because the file has unsaved changes'); };
+			return c;
+		};
+		await ext.activate(ctx);
+		await settle();
+		assert.ok(!('Pore Dark' in fake.store['poreTheme.backgrounds']));
+		assert.ok(!(ctx.state['poreTheme.bundledWritten.v2'] || []).includes('Pore Dark'), '실패 시 기록 안 남김');
+		fake.api.workspace.getConfiguration = origGet;
+		// 재실행: 이번엔 성공
+		await ext.activate(ctx);
+		await settle();
+		assert.ok(fake.store['poreTheme.backgrounds']['Pore Dark'].endsWith('/.pore-theme/demon.jpg'));
+		assert.ok(fs.readFileSync(HTML, 'utf8').includes('pore-dark-color-theme-json'));
+
+		// dirty 상태: 보류 후 저장 시 추가
+		resetHtml();
+		const fake2 = makeVscode();
+		fake2.textDocuments.push({ isDirty: true, uri: { fsPath: '/home/u/.config/Code/User/settings.json' } });
+		const ext2 = loadExtension(fake2);
+		const ctx2 = makeContext(extPath);
+		await ext2.activate(ctx2);
+		await settle();
+		assert.strictEqual(fake2.store['poreTheme.backgrounds'], undefined);
+		fake2.save();
+		await settle();
+		assert.ok(fake2.store['poreTheme.backgrounds']['Pore Dark']);
+		assert.ok(fs.readFileSync(HTML, 'utf8').includes('pore-dark-color-theme-json'));
+		console.log('ok 11-c 쓰기 실패/미저장 시 재시도');
+	}
+
 	// 12) 명령: 이미지 선택 → ~/.pore-theme 로 복사 후 현재 테마에 매핑
 	{
 		resetHtml();

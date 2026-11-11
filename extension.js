@@ -218,6 +218,7 @@ function userSettingsDirty() {
 }
 
 let pendingSetup = false;
+let pendingBundled = false;
 // 시작/설치 설정 중에는 여러 설정을 연달아 쓴다. 그때마다 재패치하면 리로드 안내가 여러 번 뜨므로 막아 두고 마지막에 한 번만 적용
 let suspendConfigEvents = false;
 
@@ -255,8 +256,11 @@ async function applySetupFile() {
  * 확장에 동봉된 기본 배경(media/backgrounds.json)을 사용자 설정에 채운다.
  * 라벨마다 한 번만 넣는다: 새 버전에서 동봉 배경이 늘면 기존 사용자에게도 추가되고,
  * 사용자가 직접 지정했거나 지운 라벨은 건드리지 않는다.
+ * "넣었다"는 기록은 설정 저장이 성공한 뒤에만 남긴다. 먼저 남기면 쓰기가 실패했을 때 영영 다시 시도하지 않는다.
  * backgrounds.json 값: "파일명" 또는 { "file", "size", "position" }
  */
+const BUNDLED_KEY = 'poreTheme.bundledWritten.v2';
+
 async function applyBundledDefaults(context) {
 	const manifest = path.join(context.extensionPath, 'media', 'backgrounds.json');
 	if (!fs.existsSync(manifest)) return false;
@@ -266,30 +270,51 @@ async function applyBundledDefaults(context) {
 	} catch {
 		return false;
 	}
-	const offered = new Set(context.globalState.get('poreTheme.bundledLabels', []));
-	// v2.2.0 은 "한 번 적용함" 플래그만 남겼다. 그때 들어간 라벨은 이미 제안된 것으로 본다
-	if (context.globalState.get('poreTheme.bundledApplied', false)) {
-		for (const l of ['Pore Snow Dark', 'Pore Snow Light', 'Malkuth Dark', 'Malkuth Light']) offered.add(l);
-	}
+	const written = new Set(context.globalState.get(BUNDLED_KEY, []));
 	const current = backgroundsMap();
 	const additions = {};
-	fs.mkdirSync(PORE_DIR, { recursive: true });
+	const alreadyThere = [];
 	for (const [label, raw] of Object.entries(list)) {
-		if (offered.has(label)) continue;
-		offered.add(label);
-		if (label in current) continue;
+		if (written.has(label)) continue;
+		// 사용자가 이미 지정한 라벨은 사용자 것으로 둔다
+		if (label in current) { alreadyThere.push(label); continue; }
 		const spec = typeof raw === 'string' ? { file: raw } : raw;
 		const src = path.join(context.extensionPath, 'media', spec.file);
 		if (!fs.existsSync(src)) continue;
-		// 확장 폴더는 업데이트마다 경로(버전)가 바뀌므로 ~/.pore-theme 로 복사해 두고 그 경로를 쓴다
-		const dst = path.join(PORE_DIR, spec.file);
-		if (!fs.existsSync(dst)) fs.copyFileSync(src, dst);
-		const p = dst.replace(/\\/g, '/');
-		additions[label] = spec.size || spec.position ? { path: p, size: spec.size || 'cover', position: spec.position || 'center' } : p;
+		additions[label] = spec;
 	}
-	await context.globalState.update('poreTheme.bundledLabels', [...offered]);
+	if (alreadyThere.length) {
+		alreadyThere.forEach((l) => written.add(l));
+		await context.globalState.update(BUNDLED_KEY, [...written]);
+	}
 	if (!Object.keys(additions).length) return false;
-	await vscode.workspace.getConfiguration(SECTION).update('backgrounds', { ...current, ...additions }, vscode.ConfigurationTarget.Global);
+	if (userSettingsDirty()) {
+		pendingBundled = true;
+		vscode.window.setStatusBarMessage('Pore Theme: settings.json을 저장하면 새 배경이 추가됩니다', 8000);
+		return false;
+	}
+
+	// 확장 폴더는 업데이트마다 경로(버전)가 바뀌므로 ~/.pore-theme 로 복사해 두고 그 경로를 쓴다
+	fs.mkdirSync(PORE_DIR, { recursive: true });
+	const entries = {};
+	for (const [label, spec] of Object.entries(additions)) {
+		const src = path.join(context.extensionPath, 'media', spec.file);
+		const dst = path.join(PORE_DIR, spec.file);
+		// 같은 이름이라도 동봉본이 바뀌었을 수 있으니 크기가 다르면 갱신
+		if (!fs.existsSync(dst) || fs.statSync(dst).size !== fs.statSync(src).size) fs.copyFileSync(src, dst);
+		const p = dst.replace(/\\/g, '/');
+		entries[label] = spec.size || spec.position ? { path: p, size: spec.size || 'cover', position: spec.position || 'center' } : p;
+	}
+	try {
+		await vscode.workspace.getConfiguration(SECTION).update('backgrounds', { ...backgroundsMap(), ...entries }, vscode.ConfigurationTarget.Global);
+	} catch (err) {
+		// 저장 실패: 기록을 남기지 않았으니 다음 실행이나 저장 시 다시 시도된다
+		pendingBundled = true;
+		console.error('[pore-theme] bundled defaults write failed', err);
+		return false;
+	}
+	Object.keys(entries).forEach((l) => written.add(l));
+	await context.globalState.update(BUNDLED_KEY, [...written]);
 	return true;
 }
 
@@ -394,7 +419,7 @@ async function startup(context) {
 	try {
 		migrated = await migrateFromShalldie(context);
 		await applySetupFile();
-		await applyBundledDefaults(context);
+		await applyBundledDefaults(context).catch((err) => console.error('[pore-theme]', err));
 	} finally {
 		suspendConfigEvents = false;
 	}
@@ -417,11 +442,18 @@ async function activate(context) {
 			if (e.affectsConfiguration(SECTION)) applyBackgrounds().catch((err) => console.error('[pore-theme]', err));
 		}),
 		vscode.workspace.onDidSaveTextDocument(() => {
-			if (!pendingSetup || userSettingsDirty()) return;
+			if ((!pendingSetup && !pendingBundled) || userSettingsDirty()) return;
+			const doSetup = pendingSetup;
 			pendingSetup = false;
+			pendingBundled = false;
 			(async () => {
 				suspendConfigEvents = true;
-				try { await applySetupFile(); } finally { suspendConfigEvents = false; }
+				try {
+					if (doSetup) await applySetupFile();
+					await applyBundledDefaults(context);
+				} finally {
+					suspendConfigEvents = false;
+				}
 				await applyBackgrounds();
 			})().catch((err) => console.error('[pore-theme]', err));
 		})
