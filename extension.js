@@ -89,6 +89,21 @@ function backgroundsMap() {
 	return map && typeof map === 'object' ? map : {};
 }
 
+/** 배경 항목 정규화. 문자열(경로) 또는 { path, size, position } 둘 다 받는다 */
+function normalizeEntry(v) {
+	if (!v) return null;
+	if (typeof v === 'string') return { path: v, size: 'cover', position: 'center' };
+	if (typeof v === 'object' && typeof v.path === 'string') {
+		return { path: v.path, size: v.size || 'cover', position: v.position || 'center' };
+	}
+	return null;
+}
+
+/** CSS 값으로 넣어도 안전한 문자만 허용 (설정값이 그대로 HTML에 들어가므로) */
+function safeCssValue(v, fallback) {
+	return /^[a-z0-9 .%-]+$/i.test(String(v)) ? String(v) : fallback;
+}
+
 function cssString(s) {
 	return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
@@ -107,13 +122,16 @@ function buildPatch() {
 	const missing = [];
 	const unknown = [];
 	// 라벨 정렬: 같은 설정이면 같은 CSS → 불필요한 재패치 방지
-	for (const label of Object.keys(backgroundsMap()).sort()) {
-		const img = backgroundsMap()[label];
-		if (!img) continue;
-		if (!fileExists(img)) { missing.push(label); continue; }
+	const map = backgroundsMap();
+	for (const label of Object.keys(map).sort()) {
+		const entry = normalizeEntry(map[label]);
+		if (!entry) continue;
+		if (!fileExists(entry.path)) { missing.push(label); continue; }
 		const cls = findThemeClass(label);
 		if (!cls) { unknown.push(label); continue; }
-		rules.push(`body:has(> .monaco-workbench.${cls})::before{background-image:url("${cssString(toWorkbenchUrl(img))}")}`);
+		const size = safeCssValue(entry.size, 'cover');
+		const pos = safeCssValue(entry.position, 'center');
+		rules.push(`body:has(> .monaco-workbench.${cls})::before{background-image:url("${cssString(toWorkbenchUrl(entry.path))}");background-size:${size};background-position:${pos}}`);
 	}
 	if (!rules.length) return { css: '', missing, unknown };
 
@@ -215,7 +233,7 @@ async function applySetupFile() {
 	}
 	let setup;
 	try {
-		setup = JSON.parse(fs.readFileSync(SETUP_FILE, 'utf8').replace(/^﻿/, ''));
+		setup = JSON.parse(fs.readFileSync(SETUP_FILE, 'utf8').replace(/^\uFEFF/, ''));
 	} catch (e) {
 		vscode.window.showErrorMessage(`Pore Theme: 설치 설정 파일을 읽지 못했습니다. ${e.message}`);
 		return false;
@@ -233,31 +251,45 @@ async function applySetupFile() {
 	return true;
 }
 
-/** 확장에 동봉된 기본 배경(media/backgrounds.json)이 있으면, 사용자가 아직 아무것도 지정 안 했을 때 채워 넣는다 */
+/**
+ * 확장에 동봉된 기본 배경(media/backgrounds.json)을 사용자 설정에 채운다.
+ * 라벨마다 한 번만 넣는다: 새 버전에서 동봉 배경이 늘면 기존 사용자에게도 추가되고,
+ * 사용자가 직접 지정했거나 지운 라벨은 건드리지 않는다.
+ * backgrounds.json 값: "파일명" 또는 { "file", "size", "position" }
+ */
 async function applyBundledDefaults(context) {
 	const manifest = path.join(context.extensionPath, 'media', 'backgrounds.json');
 	if (!fs.existsSync(manifest)) return false;
-	if (Object.keys(backgroundsMap()).length) return false;
-	if (context.globalState.get('poreTheme.bundledApplied', false)) return false;
 	let list;
 	try {
 		list = JSON.parse(fs.readFileSync(manifest, 'utf8'));
 	} catch {
 		return false;
 	}
-	// 확장 폴더는 업데이트마다 경로(버전)가 바뀌므로 ~/.pore-theme 로 복사해 두고 그 경로를 쓴다
-	fs.mkdirSync(PORE_DIR, { recursive: true });
-	const map = {};
-	for (const [label, file] of Object.entries(list)) {
-		const src = path.join(context.extensionPath, 'media', file);
-		if (!fs.existsSync(src)) continue;
-		const dst = path.join(PORE_DIR, file);
-		if (!fs.existsSync(dst)) fs.copyFileSync(src, dst);
-		map[label] = dst.replace(/\\/g, '/');
+	const offered = new Set(context.globalState.get('poreTheme.bundledLabels', []));
+	// v2.2.0 은 "한 번 적용함" 플래그만 남겼다. 그때 들어간 라벨은 이미 제안된 것으로 본다
+	if (context.globalState.get('poreTheme.bundledApplied', false)) {
+		for (const l of ['Pore Snow Dark', 'Pore Snow Light', 'Malkuth Dark', 'Malkuth Light']) offered.add(l);
 	}
-	if (!Object.keys(map).length) return false;
-	await vscode.workspace.getConfiguration(SECTION).update('backgrounds', map, vscode.ConfigurationTarget.Global);
-	await context.globalState.update('poreTheme.bundledApplied', true);
+	const current = backgroundsMap();
+	const additions = {};
+	fs.mkdirSync(PORE_DIR, { recursive: true });
+	for (const [label, raw] of Object.entries(list)) {
+		if (offered.has(label)) continue;
+		offered.add(label);
+		if (label in current) continue;
+		const spec = typeof raw === 'string' ? { file: raw } : raw;
+		const src = path.join(context.extensionPath, 'media', spec.file);
+		if (!fs.existsSync(src)) continue;
+		// 확장 폴더는 업데이트마다 경로(버전)가 바뀌므로 ~/.pore-theme 로 복사해 두고 그 경로를 쓴다
+		const dst = path.join(PORE_DIR, spec.file);
+		if (!fs.existsSync(dst)) fs.copyFileSync(src, dst);
+		const p = dst.replace(/\\/g, '/');
+		additions[label] = spec.size || spec.position ? { path: p, size: spec.size || 'cover', position: spec.position || 'center' } : p;
+	}
+	await context.globalState.update('poreTheme.bundledLabels', [...offered]);
+	if (!Object.keys(additions).length) return false;
+	await vscode.workspace.getConfiguration(SECTION).update('backgrounds', { ...current, ...additions }, vscode.ConfigurationTarget.Global);
 	return true;
 }
 
@@ -402,5 +434,5 @@ function deactivate() {}
 module.exports = {
 	activate,
 	deactivate,
-	_internal: { themeCssClass, toWorkbenchUrl, buildPatch, injectPatch, stripPatch, applyBackgrounds, applySetupFile, userSettingsDirty, SETUP_FILE, PATCH_RECORD, MARK_START, MARK_END },
+	_internal: { normalizeEntry, themeCssClass, toWorkbenchUrl, buildPatch, injectPatch, stripPatch, applyBackgrounds, applySetupFile, userSettingsDirty, SETUP_FILE, PATCH_RECORD, MARK_START, MARK_END },
 };

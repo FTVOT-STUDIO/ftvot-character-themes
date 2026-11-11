@@ -1,6 +1,6 @@
 # Pore Theme
 
-캐릭터 Pore와 Malkuth 일러스트의 색감으로 만든 고딕 파스텔 VS Code 테마 모음입니다. 6종이 들어 있고, Snow와 Malkuth 테마에는 일러스트 배경이 함께 들어 있습니다. 테마를 바꾸면 배경도 리로드 없이 바로 바뀝니다.
+캐릭터 Pore와 Malkuth 일러스트의 색감으로 만든 고딕 파스텔 VS Code 테마 모음입니다. 6종이 들어 있고, 테마마다 일러스트 배경이 함께 들어 있습니다. 테마를 바꾸면 배경도 리로드 없이 바로 바뀝니다.
 
 눈 피로를 줄이기 위해 다크 테마는 본문 대비를 11:1 이하, 문법 색은 9.5:1 이하로 제한하고, 라이트 테마는 배경 밝기를 순백보다 낮췄습니다. 모든 색은 WCAG AA(4.5:1) 이상입니다.
 
@@ -75,9 +75,9 @@ MIT. 자세한 내용은 [CREDITS.md](CREDITS.md)를 참고해 주세요.
 
 | 테마 | 기본 배경 |
 |------|------|
+| Pore Dark / Light | Pore 나들이 일러스트 (오른쪽 아래) |
 | Pore Snow Dark / Light | Pore 겨울 일러스트 |
 | Malkuth Dark / Light | Malkuth 교실 일러스트 |
-| 나머지 | 없음 |
 
 **어떻게 동작하나요**
 
@@ -97,7 +97,8 @@ MIT. 자세한 내용은 [CREDITS.md](CREDITS.md)를 참고해 주세요.
 // settings.json에서 직접 편집할 수도 있습니다
 "poreTheme.backgrounds": {
   "Pore Snow Dark": "C:/Users/me/Pictures/my-snow.png",
-  "Dark Modern": "C:/Users/me/Pictures/other.png"
+  // 크기와 위치도 지정 가능 (CSS background-size / background-position)
+  "Dark Modern": { "path": "C:/Users/me/Pictures/other.png", "size": "auto 80%", "position": "right bottom" }
 },
 "poreTheme.background.opacity": 0.08
 ```

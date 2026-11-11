@@ -24,6 +24,7 @@ CONTENT_TYPES = """<?xml version="1.0" encoding="utf-8"?>
 <Default Extension=".js" ContentType="application/javascript"/>
 <Default Extension=".jpg" ContentType="image/jpeg"/>
 <Default Extension=".png" ContentType="image/png"/>
+<Default Extension=".webp" ContentType="image/webp"/>
 <Default Extension=".txt" ContentType="text/plain"/>
 <Default Extension=".vsixmanifest" ContentType="text/xml"/>
 <Default Extension="" ContentType="application/octet-stream"/>

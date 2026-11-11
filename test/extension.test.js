@@ -294,6 +294,43 @@ const count = (s, needle) => s.split(needle).length - 1;
 		console.log('ok 11 동봉 기본 배경');
 	}
 
+	// 11-b) 기존 사용자: 직접 지정한 Snow는 유지, 새로 동봉된 Pore Dark만 추가 (크기/위치 포함), 지운 라벨은 다시 안 넣음
+	{
+		resetHtml();
+		const extPath = path.join(HOME, 'ext-bundled2');
+		fs.mkdirSync(path.join(extPath, 'media'), { recursive: true });
+		fs.writeFileSync(path.join(extPath, 'media', 'pore.webp'), 'img');
+		fs.writeFileSync(path.join(extPath, 'media', 'pore-snow.jpg'), 'img');
+		fs.writeFileSync(path.join(extPath, 'media', 'backgrounds.json'), JSON.stringify({
+			'Pore Dark': { file: 'pore.webp', size: 'auto 92%', position: 'right 2% bottom' },
+			'Pore Snow Dark': 'pore-snow.jpg',
+		}));
+		const fake = makeVscode();
+		fake.store['poreTheme.backgrounds'] = { 'Pore Snow Dark': snow };
+		const ext = loadExtension(fake);
+		const ctx = makeContext(extPath);
+		await ext.activate(ctx);
+		await settle();
+		const map = fake.store['poreTheme.backgrounds'];
+		assert.strictEqual(map['Pore Snow Dark'], snow, '사용자 지정 유지');
+		assert.strictEqual(map['Pore Dark'].size, 'auto 92%');
+		const html = fs.readFileSync(HTML, 'utf8');
+		assert.ok(html.includes('pore-dark-color-theme-json)::before{background-image:url('));
+		assert.ok(html.includes('background-size:auto 92%;background-position:right 2% bottom'));
+		// 사용자가 Pore Dark 를 지우면 다음 실행에도 안 넣음
+		const { ['Pore Dark']: _, ...rest } = map;
+		await fake.api.workspace.getConfiguration('poreTheme').update('backgrounds', rest);
+		await ext.activate(ctx);
+		await settle();
+		assert.ok(!('Pore Dark' in fake.store['poreTheme.backgrounds']));
+		// CSS 주입 방지: 이상한 size 값은 기본값으로
+		await fake.api.workspace.getConfiguration('poreTheme').update('backgrounds', { 'Pore Dark': { path: snow, size: 'cover;}body{display:none', position: 'center' } });
+		await settle();
+		assert.ok(!fs.readFileSync(HTML, 'utf8').includes('body{display:none'), 'CSS 주입 차단');
+		assert.ok(fs.readFileSync(HTML, 'utf8').includes('background-size:cover;background-position:center'), '기본값으로 대체');
+		console.log('ok 11-b 기존 사용자에 새 동봉 배경 추가, 값 검증');
+	}
+
 	// 12) 명령: 이미지 선택 → ~/.pore-theme 로 복사 후 현재 테마에 매핑
 	{
 		resetHtml();

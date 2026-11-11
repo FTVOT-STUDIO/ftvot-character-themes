@@ -1,4 +1,6 @@
 {
+  "Pore Dark": { "file": "pore.webp", "size": "auto 92%", "position": "right 2% bottom" },
+  "Pore Light": { "file": "pore.webp", "size": "auto 92%", "position": "right 2% bottom" },
   "Pore Snow Dark": "pore-snow.jpg",
   "Pore Snow Light": "pore-snow.jpg",
   "Malkuth Dark": "malkuth.jpg",
