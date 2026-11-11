@@ -75,6 +75,6 @@ if __name__ == "__main__":
     out.mkdir(exist_ok=True)
     for pal, fname in PALETTES:
         # pore-snow-dark-color-theme.json -> snow-dark.png
-        name = fname.replace("pore-", "").replace("-color-theme.json", "") + ".png"
+        name = fname.replace("pore-", "").replace("-color-theme.json", "") + ".png"  # malkuth-dark.png 등
         render(pal, out / name)
         print(f"wrote preview/{name}")

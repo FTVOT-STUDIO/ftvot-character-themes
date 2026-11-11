@@ -1,8 +1,8 @@
 {
   "name": "pore-theme",
   "displayName": "Pore Theme",
-  "description": "A gothic pastel color theme inspired by Pore. Plum, lilac and cherry-blossom pink in dark and light, plus a wintry Snow edition.",
-  "version": "2.0.0",
+  "description": "Gothic pastel color themes from Pore and Malkuth illustrations. Dark, Light, Snow and Malkuth editions with optional per-theme background images.",
+  "version": "2.1.0",
   "publisher": "ftvot-studio",
   "license": "MIT",
   "repository": {
@@ -16,16 +16,18 @@
     "Themes"
   ],
   "keywords": [
-    "theme",
+    "background",
     "dark",
-    "light",
-    "pink",
-    "purple",
-    "pastel",
-    "winter",
-    "snow",
     "gothic",
-    "pore"
+    "light",
+    "malkuth",
+    "pastel",
+    "pink",
+    "pore",
+    "purple",
+    "snow",
+    "theme",
+    "winter"
   ],
   "galleryBanner": {
     "color": "#1C1222",
@@ -52,7 +54,61 @@
         "label": "Pore Snow Light",
         "uiTheme": "vs",
         "path": "./themes/pore-snow-light-color-theme.json"
+      },
+      {
+        "label": "Malkuth Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/malkuth-dark-color-theme.json"
+      },
+      {
+        "label": "Malkuth Light",
+        "uiTheme": "vs",
+        "path": "./themes/malkuth-light-color-theme.json"
       }
-    ]
-  }
+    ],
+    "commands": [
+      {
+        "command": "poreTheme.setBackground",
+        "title": "현재 테마에 배경 이미지 지정",
+        "category": "Pore Theme"
+      },
+      {
+        "command": "poreTheme.clearBackground",
+        "title": "현재 테마의 배경 이미지 제거",
+        "category": "Pore Theme"
+      }
+    ],
+    "configuration": {
+      "title": "Pore Theme",
+      "properties": {
+        "poreTheme.backgrounds": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": {
+            "type": "string"
+          },
+          "markdownDescription": "테마 이름별 배경 이미지 경로. 예: `{ \"Pore Snow Dark\": \"C:/Users/me/Pictures/snow.png\" }`. 목록에 있는 테마로 바꾸면 배경이 켜지고, 없는 테마로 바꾸면 꺼집니다. [Background](https://marketplace.visualstudio.com/items?itemName=shalldie.background) 확장이 필요합니다."
+        },
+        "poreTheme.background.opacity": {
+          "type": "number",
+          "default": 0.08,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "배경 이미지 불투명도. 0.06~0.12 권장."
+        },
+        "poreTheme.background.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "테마별 배경 자동 전환 사용 여부."
+        }
+      }
+    }
+  },
+  "main": "./extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "extensionKind": [
+    "ui"
+  ]
 }

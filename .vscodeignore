@@ -2,3 +2,5 @@ build/**
 dist/**
 preview/**
 .gitignore
+test/**
+install.ps1

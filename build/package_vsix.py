@@ -15,12 +15,13 @@ ROOT = Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
 
 # 패키지에 넣을 파일 (빌드 스크립트, 미리보기는 제외)
-INCLUDE = ["package.json", "README.md", "CHANGELOG.md", "LICENSE", "CREDITS.md", "themes"]
+INCLUDE = ["package.json", "extension.js", "README.md", "CHANGELOG.md", "LICENSE", "CREDITS.md", "themes"]
 
 CONTENT_TYPES = """<?xml version="1.0" encoding="utf-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
 <Default Extension=".json" ContentType="application/json"/>
 <Default Extension=".md" ContentType="text/markdown"/>
+<Default Extension=".js" ContentType="application/javascript"/>
 <Default Extension=".txt" ContentType="text/plain"/>
 <Default Extension=".vsixmanifest" ContentType="text/xml"/>
 <Default Extension="" ContentType="application/octet-stream"/>
@@ -41,7 +42,7 @@ def manifest(pkg: dict) -> str:
 <GalleryFlags>Public</GalleryFlags>
 <Properties>
 <Property Id="Microsoft.VisualStudio.Code.Engine" Value="{e(pkg['engines']['vscode'])}"/>
-<Property Id="Microsoft.VisualStudio.Code.ExtensionKind" Value="ui,workspace"/>
+<Property Id="Microsoft.VisualStudio.Code.ExtensionKind" Value="{e(','.join(pkg.get('extensionKind', ['ui', 'workspace'])))}"/>
 <Property Id="Microsoft.VisualStudio.Services.Links.Source" Value="{e(pkg['repository']['url'])}"/>
 <Property Id="Microsoft.VisualStudio.Services.Branding.Color" Value="{e(pkg['galleryBanner']['color'])}"/>
 <Property Id="Microsoft.VisualStudio.Services.Branding.Theme" Value="{e(pkg['galleryBanner']['theme'])}"/>
