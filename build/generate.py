@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Sakura Gothic 테마 생성기.
+Pore 테마 생성기.
 팔레트 하나만 고치면 다크/라이트 JSON이 동시에 재생성된다.
 손으로 JSON 두 개를 따로 관리하면 반드시 한쪽만 고치는 사고가 난다.
 
@@ -17,7 +17,7 @@ OUT = ROOT / "themes"
 # 셔츠 라벤더, 별 핫핑크, 배경 라일락)
 # ---------------------------------------------------------------
 DARK = {
-    "name": "Sakura Gothic Dark",
+    "name": "Pore Dark",
     "type": "dark",
     # 레이어: 깊을수록 어둡게 (액티비티바 < 사이드바 < 에디터 < 위젯)
     "bg0": "#120A16",       # 액티비티바, 타이틀바
@@ -63,7 +63,7 @@ DARK = {
 }
 
 LIGHT = {
-    "name": "Sakura Gothic Light",
+    "name": "Pore Light",
     "type": "light",
     # 라이트는 밝기 대신 미세한 톤 차이 + 경계선으로 깊이 표현
     "bg0": "#F1E5EE",
@@ -110,7 +110,7 @@ LIGHT = {
 # Snow 변형: 겨울 일러스트 (핑크 설경, 마룬 외곽선, 라벤더 눈동자, 가로등 앰버)
 # ---------------------------------------------------------------
 SNOW_DARK = {
-    "name": "Sakura Gothic Snow Dark",
+    "name": "Pore Snow Dark",
     "type": "dark",
     "bg0": "#160A12", "bg1": "#1A0D15", "bg2": "#1F1019", "bg3": "#2B1723", "bg4": "#3B1F2F",
     "line": "#34192A",
@@ -130,7 +130,7 @@ SNOW_DARK = {
 }
 
 SNOW_LIGHT = {
-    "name": "Sakura Gothic Snow Light",
+    "name": "Pore Snow Light",
     "type": "light",
     # 일러스트 자체가 핑크 설경이라 라이트는 배경에 핑크 톤을 더 싣는다
     "bg0": "#F5D8E8", "bg1": "#FAE5F0", "bg2": "#FFF4F9", "bg3": "#F7DCEB", "bg4": "#F0C6DD",
@@ -151,10 +151,10 @@ SNOW_LIGHT = {
 
 # (팔레트, 출력 파일명). 새 변형은 여기에 한 줄 추가하면 끝
 PALETTES = [
-    (DARK, "sakura-gothic-dark-color-theme.json"),
-    (LIGHT, "sakura-gothic-light-color-theme.json"),
-    (SNOW_DARK, "sakura-gothic-snow-dark-color-theme.json"),
-    (SNOW_LIGHT, "sakura-gothic-snow-light-color-theme.json"),
+    (DARK, "pore-dark-color-theme.json"),
+    (LIGHT, "pore-light-color-theme.json"),
+    (SNOW_DARK, "pore-snow-dark-color-theme.json"),
+    (SNOW_LIGHT, "pore-snow-light-color-theme.json"),
 ]
 
 

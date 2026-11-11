@@ -1,13 +1,13 @@
 {
-  "name": "sakura-gothic-theme",
-  "displayName": "Sakura Gothic",
-  "description": "Plum, lilac and cherry-blossom pink. A gothic pastel color theme in dark and light, plus a wintry Snow edition.",
-  "version": "1.1.0",
+  "name": "pore-theme",
+  "displayName": "Pore Theme",
+  "description": "A gothic pastel color theme inspired by Pore. Plum, lilac and cherry-blossom pink in dark and light, plus a wintry Snow edition.",
+  "version": "2.0.0",
   "publisher": "ftvot-studio",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/FTVOT-STUDIO/sakura-gothic-theme"
+    "url": "https://github.com/FTVOT-STUDIO/pore-theme"
   },
   "engines": {
     "vscode": "^1.70.0"
@@ -22,9 +22,10 @@
     "pink",
     "purple",
     "pastel",
-    "gothic",
     "winter",
-    "snow"
+    "snow",
+    "gothic",
+    "pore"
   ],
   "galleryBanner": {
     "color": "#1C1222",
@@ -33,24 +34,24 @@
   "contributes": {
     "themes": [
       {
-        "label": "Sakura Gothic Dark",
+        "label": "Pore Dark",
         "uiTheme": "vs-dark",
-        "path": "./themes/sakura-gothic-dark-color-theme.json"
+        "path": "./themes/pore-dark-color-theme.json"
       },
       {
-        "label": "Sakura Gothic Light",
+        "label": "Pore Light",
         "uiTheme": "vs",
-        "path": "./themes/sakura-gothic-light-color-theme.json"
+        "path": "./themes/pore-light-color-theme.json"
       },
       {
-        "label": "Sakura Gothic Snow Dark",
+        "label": "Pore Snow Dark",
         "uiTheme": "vs-dark",
-        "path": "./themes/sakura-gothic-snow-dark-color-theme.json"
+        "path": "./themes/pore-snow-dark-color-theme.json"
       },
       {
-        "label": "Sakura Gothic Snow Light",
+        "label": "Pore Snow Light",
         "uiTheme": "vs",
-        "path": "./themes/sakura-gothic-snow-light-color-theme.json"
+        "path": "./themes/pore-snow-light-color-theme.json"
       }
     ]
   }
