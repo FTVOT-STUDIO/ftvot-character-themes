@@ -42,18 +42,27 @@ Write-Host ("  버전 " + $release.tag_name) -ForegroundColor DarkGray
 # 2) 배경 이미지를 ~/.pore-theme 로 복사 (원본을 옮기거나 지워도 배경이 유지되도록)
 New-Item -ItemType Directory -Force -Path $PoreDir | Out-Null
 $backgrounds = [ordered]@{}
-function Add-Background([string]$src, [string]$name, [string[]]$themes) {
+# 결과 맵을 인자로 받는다. scriptblock으로 실행되면 $script: 스코프가 호출자 세션을 가리켜서
+# 함수 밖 변수를 $script:로 고치면 엉뚱한(빈) 변수에 쓰게 된다
+function Add-Background($map, [string]$src, [string]$name, [string[]]$themes) {
 if (-not $src) { return }
-if (-not (Test-Path $src)) { throw "배경 이미지를 찾을 수 없습니다: $src" }
+if (-not (Test-Path $src)) {
+# 확장자만 다르게 저장된 경우(.png로 적었는데 실제는 .jpg 등)를 구제
+$base = [System.IO.Path]::ChangeExtension($src, $null).TrimEnd(".")
+$alt = @(".png", ".jpg", ".jpeg", ".webp") | ForEach-Object { $base + $_ } | Where-Object { Test-Path $_ } | Select-Object -First 1
+if (-not $alt) { throw "배경 이미지를 찾을 수 없습니다: $src" }
+Write-Host "  $src 대신 $alt 사용" -ForegroundColor Yellow
+$src = $alt
+}
 $ext = [System.IO.Path]::GetExtension($src)
 $dst = Join-Path $PoreDir ($name + $ext)
 Copy-Item $src $dst -Force
-foreach ($t in $themes) { $script:backgrounds[$t] = ($dst -replace "\\", "/") }
+foreach ($t in $themes) { $map[$t] = ($dst -replace "\\", "/") }
 Write-Host "  $name -> $($themes -join ', ')" -ForegroundColor DarkGray
 }
 Write-Host "[2/3] 배경 이미지 준비" -ForegroundColor Magenta
-Add-Background $SnowBackground "snow" @("Pore Snow Dark", "Pore Snow Light")
-Add-Background $MalkuthBackground "malkuth" @("Malkuth Dark", "Malkuth Light")
+Add-Background $backgrounds $SnowBackground "snow" @("Pore Snow Dark", "Pore Snow Light")
+Add-Background $backgrounds $MalkuthBackground "malkuth" @("Malkuth Dark", "Malkuth Light")
 if ($backgrounds.Count -gt 0) {
 & code --install-extension shalldie.background | Out-Host
 } else {
