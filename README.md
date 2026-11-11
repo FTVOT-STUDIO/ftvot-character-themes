@@ -19,6 +19,17 @@
 
 ## 설치
 
+### 한 줄 설치 (Windows PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/FTVOT-STUDIO/pore-theme/main/install.ps1 | iex
+```
+
+최신 릴리스를 받아 설치하고 테마를 `Pore Snow Dark`로 바꿉니다. 배경 이미지를 같이 깔려면 [배경 이미지](#배경-이미지-선택) 항목을 참고해 주세요.
+
+### 수동 설치
+
+
 1. [Releases](https://github.com/FTVOT-STUDIO/pore-theme/releases/latest)에서 `pore-theme-2.0.0.vsix` 다운로드
 2. VS Code에서 `Ctrl+Shift+P` 누르고 `Extensions: Install from VSIX...` 선택한 뒤 파일 지정
 3. `Ctrl+K Ctrl+T`에서 `Pore` 계열 테마 선택
@@ -58,3 +69,14 @@ python3 build/package_vsix.py
 ## License
 
 MIT. 자세한 내용은 [CREDITS.md](CREDITS.md)를 참고해 주세요.
+
+## 배경 이미지 (선택)
+
+테마 파일에는 배경 이미지를 넣을 수 없어서 [shalldie.background](https://github.com/shalldie/vscode-background) 확장을 함께 씁니다. 이미지는 직접 준비해 주세요.
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/FTVOT-STUDIO/pore-theme/main/install.ps1))) -Background "$env:USERPROFILE\Pictures\pore-snow-bg.png" -Opacity 0.08
+```
+
+- 이 확장은 VS Code 내부 HTML을 수정하는 방식이라 "설치가 손상되었습니다" 경고가 뜹니다. 정상 동작입니다.
+- 제거할 때는 먼저 `"background.enabled": false`로 바꾸고 재시작한 뒤에 확장을 삭제해 주세요.
