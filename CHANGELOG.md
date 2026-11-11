@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.4.0 - 2026-11-11
+- Malkuth Bunny Dark / Light 추가 (바이올렛, 딥 인디고, 라벤더). 바니걸 일러스트를 가장자리가 부드럽게 사라지는 형태로 오른쪽 아래에 배치
+- Lilith Dark / Light 추가 (플럼 블랙, 와인, 오키드, 마젠타 핑크). Lilith 일러스트를 화면 전체 배경으로
+- 테마 12종, 동봉 배경 6장. 기존 사용자에게도 새 배경 자동 추가
+
 ## 2.3.2 - 2026-11-11
 - 이름 변경: Pore Theme → FTVOT Character Themes (저장소 `FTVOT-STUDIO/ftvot-character-themes`). Pore 외 Malkuth, Demon Night 테마가 함께 들어 있어서 변경
 - 확장 ID(`ftvot-studio.pore-theme`)와 설정 키(`poreTheme.*`)는 유지해서 기존 설치본과 설정이 그대로 이어짐

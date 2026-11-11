@@ -14,5 +14,17 @@
   "Malkuth Dark": "malkuth.jpg",
   "Malkuth Light": "malkuth.jpg",
   "Demon Night Dark": "demon-night.jpg",
-  "Demon Night Light": "demon-night.jpg"
+  "Demon Night Light": "demon-night.jpg",
+  "Malkuth Bunny Dark": {
+    "file": "malkuth-bunny.webp",
+    "size": "auto 94%",
+    "position": "right 3% bottom"
+  },
+  "Malkuth Bunny Light": {
+    "file": "malkuth-bunny.webp",
+    "size": "auto 94%",
+    "position": "right 3% bottom"
+  },
+  "Lilith Dark": "lilith.jpg",
+  "Lilith Light": "lilith.jpg"
 }

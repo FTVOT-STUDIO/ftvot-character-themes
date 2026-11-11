@@ -1,8 +1,8 @@
 {
   "name": "pore-theme",
   "displayName": "FTVOT Character Themes",
-  "description": "Gothic pastel color themes for VS Code from FTVOT_STUDIO characters: Pore, Malkuth and Demon Night. Built-in per-theme background art that switches instantly with the theme.",
-  "version": "2.3.2",
+  "description": "Gothic pastel color themes for VS Code from FTVOT_STUDIO characters: Pore, Malkuth, Malkuth Bunny, Lilith and Demon Night. Built-in per-theme background art that switches instantly with the theme.",
+  "version": "2.4.0",
   "publisher": "ftvot-studio",
   "license": "MIT",
   "repository": {
@@ -18,10 +18,12 @@
   "keywords": [
     "background",
     "blue",
+    "bunny",
     "dark",
     "demon",
     "gothic",
     "light",
+    "lilith",
     "malkuth",
     "night",
     "pastel",
@@ -77,6 +79,26 @@
         "label": "Demon Night Light",
         "uiTheme": "vs",
         "path": "./themes/demon-night-light-color-theme.json"
+      },
+      {
+        "label": "Malkuth Bunny Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/malkuth-bunny-dark-color-theme.json"
+      },
+      {
+        "label": "Malkuth Bunny Light",
+        "uiTheme": "vs",
+        "path": "./themes/malkuth-bunny-light-color-theme.json"
+      },
+      {
+        "label": "Lilith Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/lilith-dark-color-theme.json"
+      },
+      {
+        "label": "Lilith Light",
+        "uiTheme": "vs",
+        "path": "./themes/lilith-light-color-theme.json"
       }
     ],
     "commands": [

@@ -187,6 +187,89 @@ DEMON_LIGHT = {
     "added": "#28614A", "modified": "#2E4E9A", "deleted": "#A3293E",
 }
 
+
+# ---------------------------------------------------------------
+# Malkuth Bunny: 바니걸 일러스트 (바이올렛 #7452BB, 딥 인디고 #412986, 라벤더 #C09CEA, 볼 핑크, 하트)
+# ---------------------------------------------------------------
+BUNNY_DARK = {
+    "name": "Malkuth Bunny Dark",
+    "mode": "dark",
+    "bg0": "#0E0A1A", "bg1": "#120D21", "bg2": "#171128", "bg3": "#211A38", "bg4": "#2D2449",
+    "line": "#28203F",
+    "fg": "#C6BEE0", "fg2": "#A097C2", "fg3": "#8F86B2",
+    "accent": "#A387E8", "accent_fg": "#171128",
+    "selection": "#3D2F70", "find": "#A387E8",
+    "comment": "#8F86B2",
+    "keyword": "#A78BEA", "storage": "#BB9DE8", "string": "#D0AEE0", "escape": "#DFA4D6",
+    "number": "#E0A5B8", "constant": "#D9AE7E",
+    "function": "#9CB0EE", "type": "#8FA8E8", "class": "#B3A6EA",
+    "variable": "#C6BEE0", "param": "#B9ACDC", "property": "#B0A3D6",
+    "tag": "#A78BEA", "attr": "#AE9BDB", "operator": "#A797CC", "punct": "#8E86AB",
+    "namespace": "#B3ABCD", "decorator": "#BB9DE8",
+    "error": "#EB7A8B", "warning": "#D9AE7E", "info": "#9CB0EE",
+    "added": "#86BFA0", "modified": "#9CB0EE", "deleted": "#EB7A8B",
+}
+
+BUNNY_LIGHT = {
+    "name": "Malkuth Bunny Light",
+    "mode": "light",
+    "bg0": "#DED6EE", "bg1": "#E5DEF2", "bg2": "#ECE7F5", "bg3": "#DFD8EC", "bg4": "#D2C8E4",
+    "line": "#CFC6E2",
+    "fg": "#261C45", "fg2": "#4A3F6E", "fg3": "#554A76",
+    "accent": "#5E3FB8", "accent_fg": "#FFFFFF",
+    "selection": "#CEBFEE", "find": "#5E3FB8",
+    "comment": "#554A76",
+    "keyword": "#5E3FB8", "storage": "#6E3DA6", "string": "#84387E", "escape": "#8F3488",
+    "number": "#943A5E", "constant": "#6A4D0F",
+    "function": "#2E52A0", "type": "#2C568C", "class": "#5340A8",
+    "variable": "#261C45", "param": "#48366F", "property": "#523C7C",
+    "tag": "#5E3FB8", "attr": "#653E90", "operator": "#5F4282", "punct": "#554A76",
+    "namespace": "#4A3F6E", "decorator": "#6E3DA6",
+    "error": "#A3293E", "warning": "#6A4D0F", "info": "#2E52A0",
+    "added": "#28614A", "modified": "#2E52A0", "deleted": "#A3293E",
+}
+
+# ---------------------------------------------------------------
+# Lilith: 어두운 보라 일러스트 (플럼 블랙 #1B081E, 와인 #511E4F, 핑크 #F4AAF6, 마젠타 #92408C, 오키드 #C36FC7, 붉은 눈)
+# ---------------------------------------------------------------
+LILITH_DARK = {
+    "name": "Lilith Dark",
+    "mode": "dark",
+    "bg0": "#0B0310", "bg1": "#10061A", "bg2": "#160A1E", "bg3": "#22102B", "bg4": "#30183B",
+    "line": "#2A1434",
+    "fg": "#D0BCD5", "fg2": "#AA90B2", "fg3": "#9A7FA6",
+    "accent": "#E08ADE", "accent_fg": "#160A1E",
+    "selection": "#4E2152", "find": "#E08ADE",
+    "comment": "#9A7FA6",
+    "keyword": "#DC86D8", "storage": "#C49AE2", "string": "#D6A4D6", "escape": "#E39CD2",
+    "number": "#EA98A6", "constant": "#E5869A",
+    "function": "#B4A0E8", "type": "#A09BDE", "class": "#C0AAE6",
+    "variable": "#D0BCD5", "param": "#C6AACE", "property": "#BDA2C9",
+    "tag": "#DC86D8", "attr": "#C59AD0", "operator": "#C193C2", "punct": "#A08AA8",
+    "namespace": "#BEA6C2", "decorator": "#C49AE2",
+    "error": "#EE7686", "warning": "#CBA86C", "info": "#A09BDE",
+    "added": "#88C0A2", "modified": "#B4A0E8", "deleted": "#EE7686",
+}
+
+LILITH_LIGHT = {
+    "name": "Lilith Light",
+    "mode": "light",
+    "bg0": "#E6D6E6", "bg1": "#ECDEEC", "bg2": "#EFE3EE", "bg3": "#E5D3E4", "bg4": "#DAC2D9",
+    "line": "#D8C2D6",
+    "fg": "#2C1230", "fg2": "#573A5E", "fg3": "#5F4466",
+    "accent": "#962D8E", "accent_fg": "#FFFFFF",
+    "selection": "#E3BEDF", "find": "#962D8E",
+    "comment": "#5F4466",
+    "keyword": "#962D8E", "storage": "#6C3AA6", "string": "#8A3070", "escape": "#962D8E",
+    "number": "#9C2F48", "constant": "#6A4D0F",
+    "function": "#4A3EA0", "type": "#3B4794", "class": "#6640A2",
+    "variable": "#2C1230", "param": "#57315F", "property": "#613C6E",
+    "tag": "#962D8E", "attr": "#7A3684", "operator": "#7E3A76", "punct": "#5F4466",
+    "namespace": "#573A5E", "decorator": "#6C3AA6",
+    "error": "#A3293E", "warning": "#6A4D0F", "info": "#3B4794",
+    "added": "#28614A", "modified": "#4A3EA0", "deleted": "#A3293E",
+}
+
 # (팔레트, 출력 파일명). 새 변형은 여기에 한 줄 추가하면 끝
 PALETTES = [
     (DARK, "pore-dark-color-theme.json"),
@@ -197,6 +280,10 @@ PALETTES = [
     (MALKUTH_LIGHT, "malkuth-light-color-theme.json"),
     (DEMON_DARK, "demon-night-dark-color-theme.json"),
     (DEMON_LIGHT, "demon-night-light-color-theme.json"),
+    (BUNNY_DARK, "malkuth-bunny-dark-color-theme.json"),
+    (BUNNY_LIGHT, "malkuth-bunny-light-color-theme.json"),
+    (LILITH_DARK, "lilith-dark-color-theme.json"),
+    (LILITH_LIGHT, "lilith-light-color-theme.json"),
 ]
 
 
