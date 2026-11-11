@@ -144,6 +144,49 @@ MALKUTH_LIGHT = {
     "added": "#28614A", "modified": "#39509D", "deleted": "#A3293E",
 }
 
+
+# ---------------------------------------------------------------
+# Demon Night: 푸른 밤하늘 일러스트 (인디고 #343391, 페리윙클 #8B96E5, 하늘 #95B3EC,
+# 라일락 핑크 #E5C1E8, 모브 #D2A6D4, 바이올렛 #8C77C5, 붉은 눈, 복숭아 머리, 초록 눈)
+# ---------------------------------------------------------------
+DEMON_DARK = {
+    "name": "Demon Night Dark",
+    "mode": "dark",
+    "bg0": "#0B0C1C", "bg1": "#0F1024", "bg2": "#13152C", "bg3": "#1C1F3D", "bg4": "#272B52",
+    "line": "#232748",
+    "fg": "#C1C4E3", "fg2": "#9DA1C9", "fg3": "#8B90BB",
+    "accent": "#8E98E6", "accent_fg": "#13152C",   # 페리윙클
+    "selection": "#33397A", "find": "#8E98E6",
+    "comment": "#8B90BB",
+    "keyword": "#A090E2", "storage": "#B39CE6", "string": "#CDA8D0", "escape": "#E3A6D4",
+    "number": "#E8A592", "constant": "#E28C9C",    # 복숭아 머리, 붉은 눈
+    "function": "#8CBCE8", "type": "#96AEEA", "class": "#B6B2EC",   # 하늘색
+    "variable": "#C1C4E3", "param": "#B6B0DC", "property": "#AEB4E0",
+    "tag": "#A090E2", "attr": "#AA9FDA", "operator": "#A0A6D6", "punct": "#8C91B2",
+    "namespace": "#B3B6D6", "decorator": "#B39CE6",
+    "error": "#EC7A8A", "warning": "#D2B373", "info": "#8CBCE8",
+    "added": "#86C298", "modified": "#96AEEA", "deleted": "#EC7A8A",  # 초록 눈
+}
+
+DEMON_LIGHT = {
+    "name": "Demon Night Light",
+    "mode": "light",
+    "bg0": "#D8DBEF", "bg1": "#DFE2F3", "bg2": "#E7E9F6", "bg3": "#D9DCEE", "bg4": "#CCD0E8",
+    "line": "#C9CDE5",
+    "fg": "#1E2148", "fg2": "#424673", "fg3": "#4D517B",
+    "accent": "#3F4DB3", "accent_fg": "#FFFFFF",
+    "selection": "#C3C9EE", "find": "#3F4DB3",
+    "comment": "#4D517B",
+    "keyword": "#5A3FAE", "storage": "#693E9E", "string": "#8E3A72", "escape": "#9A3070",
+    "number": "#94402C", "constant": "#8E2C46",
+    "function": "#1E5C88", "type": "#2E4E9A", "class": "#5143A6",
+    "variable": "#1E2148", "param": "#43386E", "property": "#4A3E78",
+    "tag": "#5A3FAE", "attr": "#61408C", "operator": "#59447E", "punct": "#4D517B",
+    "namespace": "#424673", "decorator": "#693E9E",
+    "error": "#A3293E", "warning": "#6A4D0F", "info": "#1E5C88",
+    "added": "#28614A", "modified": "#2E4E9A", "deleted": "#A3293E",
+}
+
 # (팔레트, 출력 파일명). 새 변형은 여기에 한 줄 추가하면 끝
 PALETTES = [
     (DARK, "pore-dark-color-theme.json"),
@@ -152,6 +195,8 @@ PALETTES = [
     (SNOW_LIGHT, "pore-snow-light-color-theme.json"),
     (MALKUTH_DARK, "malkuth-dark-color-theme.json"),
     (MALKUTH_LIGHT, "malkuth-light-color-theme.json"),
+    (DEMON_DARK, "demon-night-dark-color-theme.json"),
+    (DEMON_LIGHT, "demon-night-light-color-theme.json"),
 ]
 
 

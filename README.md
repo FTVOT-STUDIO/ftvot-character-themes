@@ -1,6 +1,6 @@
 # Pore Theme
 
-캐릭터 Pore와 Malkuth 일러스트의 색감으로 만든 고딕 파스텔 VS Code 테마 모음입니다. 6종이 들어 있고, 테마마다 일러스트 배경이 함께 들어 있습니다. 테마를 바꾸면 배경도 리로드 없이 바로 바뀝니다.
+캐릭터 Pore, Malkuth, Demon Night 일러스트의 색감으로 만든 고딕 파스텔 VS Code 테마 모음입니다. 8종이 들어 있고, 테마마다 일러스트 배경이 함께 들어 있습니다. 테마를 바꾸면 배경도 리로드 없이 바로 바뀝니다.
 
 눈 피로를 줄이기 위해 다크 테마는 본문 대비를 11:1 이하, 문법 색은 9.5:1 이하로 제한하고, 라이트 테마는 배경 밝기를 순백보다 낮췄습니다. 모든 색은 WCAG AA(4.5:1) 이상입니다.
 
@@ -12,6 +12,8 @@
 | Pore Snow Light | `#F2E5EC` | `#A0305F` |
 | Malkuth Dark | `#181526` | `#A68AE6` |
 | Malkuth Light | `#EAE6F3` | `#6847B5` |
+| Demon Night Dark | `#13152C` | `#8E98E6` |
+| Demon Night Light | `#E7E9F6` | `#3F4DB3` |
 
 ![Pore Dark](preview/dark.png)
 
@@ -25,6 +27,10 @@
 
 ![Malkuth Light](preview/malkuth-light.png)
 
+![Demon Night Dark](preview/demon-night-dark.png)
+
+![Demon Night Light](preview/demon-night-light.png)
+
 ## 설치
 
 ### 한 줄 설치 (Windows PowerShell)
@@ -37,14 +43,14 @@
 
 ### 수동 설치
 
-1. [Releases](https://github.com/FTVOT-STUDIO/pore-theme/releases/latest)에서 `pore-theme-2.2.1.vsix` 다운로드
+1. [Releases](https://github.com/FTVOT-STUDIO/pore-theme/releases/latest)에서 `pore-theme-2.3.0.vsix` 다운로드
 2. VS Code에서 `Ctrl+Shift+P` 누르고 `Extensions: Install from VSIX...` 선택한 뒤 파일 지정
 3. `Ctrl+K Ctrl+T`에서 `Pore` 계열 테마 선택
 
 CLI로 설치할 수도 있습니다.
 
 ```bash
-code --install-extension pore-theme-2.2.1.vsix
+code --install-extension pore-theme-2.3.0.vsix
 ```
 
 ## OS 다크/라이트 모드에 맞춰 자동 전환
@@ -61,7 +67,7 @@ code --install-extension pore-theme-2.2.1.vsix
 
 ## 색 바꾸기
 
-`build/generate.py`의 팔레트(`DARK`, `LIGHT`, `SNOW_DARK`, `SNOW_LIGHT`, `MALKUTH_DARK`, `MALKUTH_LIGHT`)를 수정한 뒤 [개발](#개발) 항목의 명령을 순서대로 실행하시면 됩니다.
+`build/generate.py`의 팔레트(`DARK`, `LIGHT`, `SNOW_DARK`, `SNOW_LIGHT`, `MALKUTH_DARK`, `MALKUTH_LIGHT`, `DEMON_DARK`, `DEMON_LIGHT`)를 수정한 뒤 [개발](#개발) 항목의 명령을 순서대로 실행하시면 됩니다.
 
 ## 접근성
 
@@ -78,6 +84,7 @@ MIT. 자세한 내용은 [CREDITS.md](CREDITS.md)를 참고해 주세요.
 | Pore Dark / Light | Pore 나들이 일러스트 (오른쪽 아래) |
 | Pore Snow Dark / Light | Pore 겨울 일러스트 |
 | Malkuth Dark / Light | Malkuth 교실 일러스트 |
+| Demon Night Dark / Light | Demon Night 일러스트 |
 
 **어떻게 동작하나요**
 

@@ -1,8 +1,18 @@
 {
-  "Pore Dark": { "file": "pore.webp", "size": "auto 92%", "position": "right 2% bottom" },
-  "Pore Light": { "file": "pore.webp", "size": "auto 92%", "position": "right 2% bottom" },
+  "Pore Dark": {
+    "file": "pore.webp",
+    "size": "auto 92%",
+    "position": "right 2% bottom"
+  },
+  "Pore Light": {
+    "file": "pore.webp",
+    "size": "auto 92%",
+    "position": "right 2% bottom"
+  },
   "Pore Snow Dark": "pore-snow.jpg",
   "Pore Snow Light": "pore-snow.jpg",
   "Malkuth Dark": "malkuth.jpg",
-  "Malkuth Light": "malkuth.jpg"
+  "Malkuth Light": "malkuth.jpg",
+  "Demon Night Dark": "demon-night.jpg",
+  "Demon Night Light": "demon-night.jpg"
 }

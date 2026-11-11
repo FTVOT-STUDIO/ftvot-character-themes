@@ -1,8 +1,8 @@
 {
   "name": "pore-theme",
   "displayName": "Pore Theme",
-  "description": "Gothic pastel color themes from Pore and Malkuth illustrations, with built-in per-theme background art that switches instantly with the theme.",
-  "version": "2.2.1",
+  "description": "Gothic pastel color themes from Pore, Malkuth and Demon Night illustrations, with built-in per-theme background art that switches instantly with the theme.",
+  "version": "2.3.0",
   "publisher": "ftvot-studio",
   "license": "MIT",
   "repository": {
@@ -17,10 +17,13 @@
   ],
   "keywords": [
     "background",
+    "blue",
     "dark",
+    "demon",
     "gothic",
     "light",
     "malkuth",
+    "night",
     "pastel",
     "pink",
     "pore",
@@ -64,6 +67,16 @@
         "label": "Malkuth Light",
         "uiTheme": "vs",
         "path": "./themes/malkuth-light-color-theme.json"
+      },
+      {
+        "label": "Demon Night Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/demon-night-dark-color-theme.json"
+      },
+      {
+        "label": "Demon Night Light",
+        "uiTheme": "vs",
+        "path": "./themes/demon-night-light-color-theme.json"
       }
     ],
     "commands": [
