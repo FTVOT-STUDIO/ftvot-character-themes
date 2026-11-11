@@ -212,23 +212,62 @@ const count = (s, needle) => s.split(needle).length - 1;
 		console.log('ok 9 dirty settings.json 보류 후 저장 시 적용');
 	}
 
-	// 10) v2.1 마이그레이션: 우리가 켰던 shalldie background 는 끈다, 남이 켠 건 유지
+	// 10) v2.1 마이그레이션
 	{
+		const SHALLDIE_BLOCK = '<!-- vscode-background-start background.ver.3.1.0 -->\n<script>/*shalldie*/</script>\n<!-- vscode-background-end -->\n';
+		const withShalldie = ORIGINAL_HTML.replace("style-src", "script-src 'unsafe-inline' 'self'; style-src").replace('</html>', SHALLDIE_BLOCK + '</html>');
+
+		// 10-a) 기록(managed)이 없어도, 이미지가 ~/.pore-theme 이면 v2.1 이 켠 것으로 보고 정리
 		resetHtml();
+		fs.writeFileSync(HTML, withShalldie);
 		const fake = makeVscode();
 		fake.store['background.enabled'] = true;
+		fake.store['background.fullscreen'] = { images: ['file:///C:/Users/kye20/.pore-theme/malkuth.png'], opacity: 0.08 };
+		fake.store['poreTheme.backgrounds'] = { 'Pore Snow Dark': snow };
 		const ext = loadExtension(fake);
-		const ctx = makeContext();
-		ctx.state['poreTheme.backgroundManaged'] = true;
-		await ext.activate(ctx);
+		await ext.activate(makeContext());
+		await settle();
+		const html = fs.readFileSync(HTML, 'utf8');
+		assert.ok(!html.includes('vscode-background-start'), 'shalldie 블록 제거');
+		assert.ok(!html.includes("script-src 'unsafe-inline'"), 'shalldie가 넣은 unsafe-inline 제거');
+		assert.ok(html.includes('pore-theme-bg-start'), '우리 패치는 적용');
 		assert.strictEqual(fake.store['background.enabled'], false);
+		assert.strictEqual(fake.store['background.fullscreen'], undefined);
+		assert.strictEqual(fake.messages.filter(([t, m]) => t === 'info' && m.includes('다시 로드')).length, 1, '리로드 안내 1회');
 
+		// 10-b) 우리 패치가 이미 있고 shalldie 블록만 남은 경우에도 정리 + 리로드 안내
+		const fakeB = makeVscode();
+		fakeB.store['poreTheme.backgrounds'] = { 'Pore Snow Dark': snow };
+		const extB = loadExtension(fakeB);
+		fs.writeFileSync(HTML, fs.readFileSync(HTML, 'utf8').replace('</html>', SHALLDIE_BLOCK + '</html>'));
+		fakeB.store['background.enabled'] = true;
+		fakeB.store['background.fullscreen'] = { images: ['file:///C:/Users/kye20/.pore-theme/snow.png'] };
+		await extB.activate(makeContext());
+		await settle();
+		assert.ok(!fs.readFileSync(HTML, 'utf8').includes('vscode-background-start'));
+		assert.ok(fakeB.messages.some(([t, m]) => t === 'info' && m.includes('겹침')), '옛 배경 정리 안내');
+
+		// 10-c) managed 기록만 있는 경우도 정리
+		resetHtml();
 		const fake2 = makeVscode();
 		fake2.store['background.enabled'] = true;
 		const ext2 = loadExtension(fake2);
-		await ext2.activate(makeContext());
-		assert.strictEqual(fake2.store['background.enabled'], true);
-		console.log('ok 10 shalldie 마이그레이션');
+		const ctx2 = makeContext();
+		ctx2.state['poreTheme.backgroundManaged'] = true;
+		await ext2.activate(ctx2);
+		assert.strictEqual(fake2.store['background.enabled'], false);
+
+		// 10-d) 사용자가 직접 쓰는 Background 설정(다른 경로 이미지)은 손대지 않음
+		resetHtml();
+		fs.writeFileSync(HTML, withShalldie);
+		const fake3 = makeVscode();
+		fake3.store['background.enabled'] = true;
+		fake3.store['background.fullscreen'] = { images: ['file:///C:/Users/me/Pictures/mine.png'] };
+		const ext3 = loadExtension(fake3);
+		await ext3.activate(makeContext());
+		assert.strictEqual(fake3.store['background.enabled'], true);
+		assert.ok(fs.readFileSync(HTML, 'utf8').includes('vscode-background-start'));
+		console.log('ok 10 shalldie 마이그레이션 (겹침 해소)');
 	}
 
 	// 11) 동봉 이미지(media/backgrounds.json)가 있으면 첫 실행에 자동 지정, ~/.pore-theme 로 복사

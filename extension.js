@@ -261,12 +261,54 @@ async function applyBundledDefaults(context) {
 	return true;
 }
 
-/** v2.1.x 는 shalldie.background 의 설정을 켜고 껐다. 우리가 켠 것이면 꺼서 이중 배경을 막는다 */
+/** shalldie.background 의 fullscreen 이미지가 전부 ~/.pore-theme 안에 있으면 v2.1 이 써 넣은 것 */
+function shalldieConfigIsOurs(bg) {
+	const full = bg.get('fullscreen');
+	const imgs = full && Array.isArray(full.images) ? full.images : [];
+	if (!imgs.length) return false;
+	return imgs.every((u) => {
+		let s = String(u);
+		try { s = decodeURI(s); } catch { /* 그대로 비교 */ }
+		return s.replace(/\\/g, '/').toLowerCase().includes('/.pore-theme/');
+	});
+}
+
+/** shalldie.background 가 workbench.html 에 넣은 블록 제거 (그 확장의 uninstall 과 같은 처리) */
+function stripShalldieHtml() {
+	const file = workbenchHtmlPath();
+	const html = fs.readFileSync(file, 'utf8');
+	if (!html.includes('vscode-background-start')) return false;
+	const clean = html
+		.replace(/<!-- vscode-background-start[\s\S]*?<!-- vscode-background-end -->\n?/g, '')
+		.replace(/(script-src) 'unsafe-inline'/, '$1');
+	if (clean === html) return false;
+	fs.writeFileSync(file, clean, 'utf8');
+	return true;
+}
+
+/**
+ * v2.1.x 는 shalldie.background 로 배경을 띄웠다. v2.2 는 직접 띄우므로 둘 다 살아 있으면 배경이 겹친다.
+ * v2.1 이 켠 것(기록이 있거나, 이미지가 전부 ~/.pore-theme 경로)일 때만 끄고, 그 확장이 넣은 HTML 블록도 직접 지운다.
+ * HTML 을 먼저 지워야 shalldie 쪽이 "Disable and Reload" 팝업을 띄우지 않는다.
+ * 반환: HTML 을 바꿨으면 true (= 리로드 필요)
+ */
 async function migrateFromShalldie(context) {
-	if (!context.globalState.get(LEGACY_MANAGED_KEY, false)) return;
 	const bg = vscode.workspace.getConfiguration('background');
-	if (bg.get('enabled') === true) await bg.update('enabled', false, vscode.ConfigurationTarget.Global);
+	const managed = context.globalState.get(LEGACY_MANAGED_KEY, false);
+	const ours = shalldieConfigIsOurs(bg);
+	if (!managed && !ours) return false;
+
+	let htmlChanged = false;
+	try {
+		htmlChanged = stripShalldieHtml();
+	} catch (err) {
+		console.error('[pore-theme] shalldie html cleanup failed', err);
+	}
+	const G = vscode.ConfigurationTarget.Global;
+	if (bg.get('enabled') === true) await bg.update('enabled', false, G);
+	if (ours) await bg.update('fullscreen', undefined, G);
 	await context.globalState.update(LEGACY_MANAGED_KEY, false);
+	return htmlChanged;
 }
 
 // ---------------------------------------------------------------- 명령
@@ -315,16 +357,21 @@ async function removePatch() {
 // ---------------------------------------------------------------- 진입점
 
 async function startup(context) {
+	let migrated = false;
 	suspendConfigEvents = true;
 	try {
-		await migrateFromShalldie(context);
+		migrated = await migrateFromShalldie(context);
 		await applySetupFile();
 		await applyBundledDefaults(context);
 	} finally {
 		suspendConfigEvents = false;
 	}
 	// 시작 시 패치 확인: VS Code 업데이트로 HTML이 새로 깔렸으면 여기서 다시 넣는다
-	await applyBackgrounds();
+	const result = await applyBackgrounds();
+	// 우리 패치는 그대로인데 예전 Background 확장 블록만 지운 경우에도, 화면에 남은 옛 배경을 없애려면 리로드가 필요하다
+	if (migrated && result === 'unchanged') {
+		await promptReload('Pore Theme: 예전 Background 확장의 배경을 정리했습니다. 다시 로드하면 배경 겹침이 사라집니다.');
+	}
 }
 
 async function activate(context) {
